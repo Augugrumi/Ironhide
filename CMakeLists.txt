@@ -17,7 +17,7 @@ endif()
 
 add_executable(ironhide
         main.cpp
-        src/proxy/bridge.cpp)
+        src/servertcp.cpp src/utils/threadpool.h src/utils/asynctaskexecutor.cpp src/utils/asynctaskexecutor.h src/serverudp.cpp src/serverudp.h src/server.cpp src/server.h)
 
 # Set library version
 set_target_properties(
@@ -26,7 +26,7 @@ set_target_properties(
 
 # In debug mode add more compilation flags
 if ((CMAKE_BUILD_TYPE MATCHES Debug)  OR (CMAKE_BUILD_TYPE MATCHES DEBUG))
-    target_compile_options(${PROJECT_NAME} PRIVATE -pedantic -ansi -Wall -Werror)
+    target_compile_options(${PROJECT_NAME} PRIVATE -pedantic -ansi -Wall)
 endif()
 
 
