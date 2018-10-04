@@ -37,19 +37,7 @@ void server::tcp::ServerTCP::run() {
         exit(1);
     }
 
-    /* Assign signal handlers to signals. */
-    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
-        perror("signal");
-        exit(1);
-    }
-    if (signal(SIGTERM, Server::signal_handler) == SIG_ERR) {
-        perror("signal");
-        exit(1);
-    }
-    if (signal(SIGINT, Server::signal_handler) == SIG_ERR) {
-        perror("signal");
-        exit(1);
-    }
+    setup_sign_catching();
 
     while (!stopped_) {
         /* Create pthread argument for each connection to client. */

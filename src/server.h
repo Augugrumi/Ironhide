@@ -6,6 +6,10 @@
 #define IRONHIDE_SERVER_H
 
 #include <cstdint>
+#include <cstdlib>
+#include <csignal>
+#include <errno.h>
+#include <stdio.h>
 
 #define BACKLOG 10
 #define BUFFER_SIZE 8196
@@ -18,6 +22,7 @@ protected:
     bool stopped_;
 
     virtual void pkt_mngmnt(void*) = 0;
+    void setup_sign_catching();
     static void signal_handler(int signal_number);
 public:
     Server(uint16_t port);
