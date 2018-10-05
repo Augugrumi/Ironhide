@@ -30,7 +30,7 @@ typedef struct udp_pkt_mngmnt_args {
 
 } pthread_arg_t;
 
-class ServerUDP : Server {
+class ServerUDP : public Server {
 public:
     ServerUDP(uint16_t port);
     void run();

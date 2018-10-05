@@ -28,7 +28,7 @@ typedef struct tcp_pkt_mngmnt_args {
     struct sockaddr_in client_address;
 } tcp_pkt_mngmnt_args;
 
-class ServerTCP : Server {
+class ServerTCP : public Server {
 public:
     ServerTCP(uint16_t port);
     void run() override;
