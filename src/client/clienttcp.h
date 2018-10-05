@@ -20,9 +20,15 @@ namespace client {
 namespace tcp {
 
 class ClientTCP {
+private:
+    sockaddr_in address;
+    sockaddr_in serv_addr;
+    fd_type sock;
+
 public:
-    void connect_and_send(unsigned char* message, size_t message_len,
-                          char* dst, uint16_t port);
+    void connect_to_server(char* dst, uint16_t port);
+    void send_and_receive(unsigned char* message, size_t message_len);
+    void close_connection();
 };
 
 } // namespace tcp

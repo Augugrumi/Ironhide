@@ -4,16 +4,7 @@
 
 #include "clienttcp.h"
 
-void client::tcp::ClientTCP::connect_and_send(unsigned char *message,
-                                              size_t message_len,
-                                              char *dst,
-                                              uint16_t port) {
-    struct sockaddr_in address;
-    fd_type sock = 0;
-    ssize_t valread;
-    struct sockaddr_in serv_addr;
-
-    char buffer[BUFFER_SIZE] = {0};
+void client::tcp::ClientTCP::connect_to_server(char* dst, uint16_t port) {
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket creation error");
         exit(EXIT_FAILURE);
@@ -34,6 +25,13 @@ void client::tcp::ClientTCP::connect_and_send(unsigned char *message,
         perror("connection failed");
         exit(EXIT_FAILURE);
     }
+}
+
+void client::tcp::ClientTCP::send_and_receive(unsigned char *message,
+                                              size_t message_len) {
+    ssize_t valread;
+    char buffer[BUFFER_SIZE] = {0};
+
     send(sock , message , message_len, 0);
     printf("Hello message sent\n");
     valread = read( sock , buffer, BUFFER_SIZE);
@@ -41,6 +39,8 @@ void client::tcp::ClientTCP::connect_and_send(unsigned char *message,
         perror("error receiving data");
         exit(EXIT_FAILURE);
     }
+}
 
+void client::tcp::ClientTCP::close_connection() {
     close(sock);
 }
