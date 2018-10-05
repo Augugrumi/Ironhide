@@ -15,31 +15,14 @@ else()
     message(STATUS "Note: building in release mode. Build in debug mode for a verbose log")
 endif()
 
-add_executable(ironhide
-        main.cpp
-        src/servertcp.cpp src/utils/threadpool.h src/utils/asynctaskexecutor.cpp src/utils/asynctaskexecutor.h src/serverudp.cpp src/serverudp.h src/server.cpp src/server.h)
+# Where ironhide will be installed
+set(CMAKE_INSTALL_BINDIR bin)
 
-# Set library version
-set_target_properties(
-        ${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_NAME}_VERSION_STRING
-)
-
-# In debug mode add more compilation flags
-if ((CMAKE_BUILD_TYPE MATCHES Debug)  OR (CMAKE_BUILD_TYPE MATCHES DEBUG))
-    target_compile_options(${PROJECT_NAME} PRIVATE -pedantic -ansi -Wall)
+# Don't want compilation in source dir
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+set(CMAKE_DISABLE_SOURCE_CHANGES  ON)
+if(",${CMAKE_SOURCE_DIR}," STREQUAL ",${CMAKE_BINARY_DIR},")
+    message(FATAL_ERROR "ERROR: In-source builds are not allowed.")
 endif()
 
-
-# Search for basic Thread support
-find_package(Threads REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE "-pthread")
-
-# Boost system is needed
-find_package(Boost 1.58 COMPONENTS system REQUIRED)
-target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
-
-# Boost thread is needed
-find_package(Boost 1.58 COMPONENTS thread REQUIRED)
-target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
+add_subdirectory("${ironhide_SOURCE_DIR}/src/")

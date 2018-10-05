@@ -5,6 +5,8 @@
 #ifndef IRONHIDE_SERVER_H
 #define IRONHIDE_SERVER_H
 
+#include "config.h"
+
 #include <cstdint>
 #include <cstdlib>
 #include <csignal>
@@ -12,7 +14,6 @@
 #include <stdio.h>
 
 #define BACKLOG 10
-#define BUFFER_SIZE 8196
 
 namespace server {
 
