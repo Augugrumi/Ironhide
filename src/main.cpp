@@ -3,6 +3,8 @@
 
 #include "server/servertcp.h"
 #include "server/serverudp.h"
+#include "endpoint/ingress.h"
+#include "endpoint/egress.h"
 
 void usage() {
     const char message[] =
@@ -40,26 +42,13 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::thread udp_internal_thread([&int_port]{
-        (new server::udp::ServerUDP(int_port))->run();
-    });
-    std::thread udp_external_thread([&ext_port]{
-        (new server::udp::ServerUDP(ext_port))->run();
-    });
-
     if (is_egress) {
-        udp_external_thread.join();
-        udp_internal_thread.join();
+        endpoint::Egress e;
+        e.start(int_port, ext_port);
     } else {
-
-        std::thread tcp_thread([&ext_port]{
-            (new server::tcp::ServerTCP(ext_port))->run();
-        });
-
-        tcp_thread.join();
-        udp_external_thread.join();
-        udp_internal_thread.join();
-        std::cout << "Hello, World!" << std::endl;
+        endpoint::Ingress i;
+        i.start(int_port, ext_port);
     }
+
     return 0;
 }
