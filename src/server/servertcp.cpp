@@ -91,5 +91,5 @@ void server::tcp::ServerTCP::pkt_mngmnt(void* mngmnt_args) {
      * messages with the client.
      */
 
-    close(new_socket_fd);
+    //close(new_socket_fd);
 }

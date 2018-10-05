@@ -5,7 +5,9 @@ add_executable(${PROJECT_NAME}
         "server/serverudp.cpp"
         "server/utils/threadpool.h"
         "server/utils/asynctaskexecutor.cpp"
-        )
+        "client/clienttcp.cpp"
+        "client/clientudp.cpp"
+        "client/client.h")
 
 # Set library version
 set_target_properties(
