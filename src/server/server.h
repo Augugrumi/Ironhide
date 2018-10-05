@@ -12,22 +12,26 @@
 #include <csignal>
 #include <errno.h>
 #include <stdio.h>
+#include <functional>
 
 #define BACKLOG 10
 
 namespace server {
 
+typedef std::function<void(void*)> pkt_mngmnt_lambda;
+
 class Server {
 protected:
     const uint16_t port_;
     bool stopped_;
+    pkt_mngmnt_lambda manager_;
 
-    virtual void pkt_mngmnt(void*) = 0;
     void setup_sign_catching();
     static void signal_handler(int signal_number);
 public:
     Server(uint16_t port);
     virtual void run() = 0;
+    virtual void set_pkt_manager(pkt_mngmnt_lambda);
     void stop();
 
     virtual ~Server() = default;

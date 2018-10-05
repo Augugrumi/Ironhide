@@ -65,7 +65,7 @@ void server::udp::ServerUDP::run() {
 
         /* Create thread to serve connection to client. */
         ASYNC_TASK(
-                std::bind<void>(&ServerUDP::pkt_mngmnt, this, args));
+                std::bind<void>(manager_, args));
     }
 
     /* close(socket_fd);
@@ -74,13 +74,13 @@ void server::udp::ServerUDP::run() {
      */
 }
 
-void server::udp::ServerUDP::pkt_mngmnt(void* mngmnt_args) {
+/*void server::udp::ServerUDP::pkt_mngmnt(void* mngmnt_args) {
     auto args = (udp_pkt_mngmnt_args *)mngmnt_args;
     //struct sockaddr_in client_address = pthread_arg->client_address;
     /* TODO: Get arguments passed to threads here. See lines 22 and 116. */
 
 
-    std::cout << "bla" << std::endl;
+/*    std::cout << "bla" << std::endl;
 
     std::string ack = "ACK";
     sendto(args->socket_fd,
@@ -96,4 +96,4 @@ void server::udp::ServerUDP::pkt_mngmnt(void* mngmnt_args) {
      * write(new_socket_fd,,) and read(new_socket_fd,,) to send and receive
      * messages with the client.
      */
-}
+/*}*/

@@ -29,8 +29,6 @@ typedef struct tcp_pkt_mngmnt_args {
 } tcp_pkt_mngmnt_args;
 
 class ServerTCP : Server {
-protected:
-    void pkt_mngmnt(void *) override;
 public:
     ServerTCP(uint16_t port);
     void run() override;

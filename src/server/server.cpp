@@ -29,3 +29,7 @@ void server::Server::setup_sign_catching() {
         exit(1);
     }
 }
+
+void server::Server::set_pkt_manager(server::pkt_mngmnt_lambda manager) {
+    manager_ = std::move(manager);
+}

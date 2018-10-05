@@ -67,7 +67,7 @@ void server::tcp::ServerTCP::run() {
 
         /* Create thread to serve connection to client. */
         ASYNC_TASK(
-                std::bind<void>(&ServerTCP::pkt_mngmnt, this, args));
+                std::bind<void>(manager_, args));
     }
 
     /* close(socket_fd);
@@ -76,13 +76,13 @@ void server::tcp::ServerTCP::run() {
      */
 }
 
-void server::tcp::ServerTCP::pkt_mngmnt(void* mngmnt_args) {
+/*void server::tcp::ServerTCP::pkt_mngmnt(void* mngmnt_args) {
     auto args = (tcp_pkt_mngmnt_args*)mngmnt_args;
     int new_socket_fd = args->new_socket_fd;
     //struct sockaddr_in client_address = pthread_arg->client_address;
     /* TODO: Get arguments passed to threads here. See lines 22 and 116. */
 
-    free(args);
+/*    free(args);
 
     std::cout << "bla" << std::endl;
 
@@ -92,4 +92,4 @@ void server::tcp::ServerTCP::pkt_mngmnt(void* mngmnt_args) {
      */
 
     //close(new_socket_fd);
-}
+/*}*/
