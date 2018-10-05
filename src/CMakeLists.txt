@@ -7,7 +7,10 @@ add_executable(${PROJECT_NAME}
         "server/utils/asynctaskexecutor.cpp"
         "client/clienttcp.cpp"
         "client/clientudp.cpp"
-        "client/client.h")
+        "client/client.h" "
+        "endpoint/ingress.cpp"
+        "endpoint/endpoint.cpp"
+        "endpoint/egress.cpp)
 
 # Set library version
 set_target_properties(
