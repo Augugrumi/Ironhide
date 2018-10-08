@@ -15,7 +15,8 @@ add_executable(${PROJECT_NAME}
         "db/address.cpp"
         "classifier/classifier.cpp"
         "endpoint/connectionentry.cpp"
-        "db/exceptions/failure.cpp")
+        "db/exceptions/failure.cpp"
+        "utils/log.cpp")
 
 # Set library version
 set_target_properties(
@@ -31,6 +32,11 @@ endif()
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/src)
 target_include_directories(${PROJECT_NAME} PRIVATE "${ironhide_SOURCE_DIR}/src/server")
 target_include_directories(${PROJECT_NAME} PRIVATE "${ironhide_SOURCE_DIR}/src/server/utils")
+target_include_directories(${PROJECT_NAME} PRIVATE "${ironhide_SOURCE_DIR}/src/utils")
+target_include_directories(${PROJECT_NAME} PRIVATE "${ironhide_SOURCE_DIR}/src/classifier")
+target_include_directories(${PROJECT_NAME} PRIVATE "${ironhide_SOURCE_DIR}/src/client")
+target_include_directories(${PROJECT_NAME} PRIVATE "${ironhide_SOURCE_DIR}/src/db")
+target_include_directories(${PROJECT_NAME} PRIVATE "${ironhide_SOURCE_DIR}/src/endpoint")
 
 # Optional compilation flags
 option(BOOST_THREAD "For boost thread pool support" ON)
@@ -59,10 +65,9 @@ find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE "-pthread")
 
 # Boost system is needed
-find_package(Boost 1.58 COMPONENTS system log REQUIRED)
+find_package(Boost 1.58 COMPONENTS system REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
-target_compile_definitions(${PROJECT_NAME} PRIVATE -DBOOST_LOG_DYN_LINK)
 
 pkg_check_modules(LIBJSONCPP REQUIRED jsoncpp>=1.7.2)
 execute_process (

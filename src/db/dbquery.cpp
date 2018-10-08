@@ -22,12 +22,12 @@ size_t db::DBQuery::curl_callback(void* ptr, size_t size,
     return size * nmemb;
 }
 
-bool db::DBQuery::create_entry(char *ip_src, char *ip_dst,
+bool db::DBQuery::create_entry(const char *ip_src, const char *ip_dst,
                                uint16_t port_src, uint16_t port_dst,
-                               db::protocol_type protocol,
-                               char *id_sfc,
-                               db::endpoint_type endpoint,
-                               char* endpoint_ip, int endpoint_socket) {
+                               protocol_type protocol,
+                               const char *id_sfc,
+                               endpoint_type endpoint,
+                               const char* endpoint_ip, int endpoint_socket) {
     std::string req_addr;
     req_addr.append(roulette_addr.get_URL())
             .append(ENDPOINT_PREFIX);
@@ -59,7 +59,10 @@ bool db::DBQuery::create_entry(char *ip_src, char *ip_dst,
     val[sock] = endpoint_socket;
     val[ip] = endpoint_ip;
 
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, val.asCString());
+    //BOOST_LOG_TRIVIAL(error) << "Data to send: " + val.toStyledString();
+    LOG(ldebug, "Data to send: " + val.toStyledString());
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, val.toStyledString().c_str());
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
@@ -72,14 +75,19 @@ bool db::DBQuery::create_entry(char *ip_src, char *ip_dst,
     if(res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n",
                 curl_easy_strerror(res));
+        throw exceptions::ios_base::failure("Error while making the request"
+                                            "to route backend");
     } else {
-        BOOST_LOG_TRIVIAL(debug) << "Request performed successfully";
+        //BOOST_LOG_TRIVIAL(debug) << "Request performed successfully";
+        LOG(ldebug, "Request performed successfully");
 
         Json::CharReaderBuilder builder;
         std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
         Json::Value response;
 
         std::string errors;
+        //BOOST_LOG_TRIVIAL(info) << "Data obtained: " + req_data_res;
+        LOG(ldebug, "Data obtained: " + req_data_res);
         bool read = reader->parse(req_data_res.c_str(),
                                   req_data_res.c_str() + req_data_res.size(),
                                   &response,
@@ -92,8 +100,7 @@ bool db::DBQuery::create_entry(char *ip_src, char *ip_dst,
                 return false;
             }
         } else {
-            throw exceptions::ios_base::failure("Error while making the request"
-                                                "to route backend");
+            throw exceptions::ios_base::failure("Error while parsing the JSON reply");
         }
     }
 }
@@ -133,7 +140,7 @@ db::Address db::DBQuery::update_endpoint(char* ip_src, char* ip_dst,
         val[query::SOCK_EGRESS] = endpoint_socket;
     }
 
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, val.asCString());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, val.toStyledString().c_str());
 
     CURLcode res = curl_easy_perform(curl);
     if(res != CURLE_OK)
