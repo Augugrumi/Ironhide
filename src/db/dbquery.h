@@ -32,6 +32,7 @@ enum endpoint_type{INGRESS_T, EGRESS_T};
 enum protocol_type{TCP, UDP};
 
 // TODO copy get next from astaire
+// TODO make requests to roulette really
 class DBQuery {
 private:
     const Address roulette_addr;
