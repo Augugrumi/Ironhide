@@ -7,8 +7,6 @@
 void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
     auto args = (server::tcp::tcp_pkt_mngmnt_args*)mngmnt_args;
     int new_socket_fd = args->new_socket_fd;
-    //struct sockaddr_in client_address = pthread_arg->client_address;
-    /* TODO: Get arguments passed to threads here. See lines 22 and 116. */
 
     free(args);
 
@@ -25,8 +23,6 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
 
 void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
     auto args = (server::udp::udp_pkt_mngmnt_args *)mngmnt_args;
-    //struct sockaddr_in client_address = pthread_arg->client_address;
-    /* TODO: Get arguments passed to threads here. See lines 22 and 116. */
 
 
     std::cout << "bla" << std::endl;
@@ -49,9 +45,6 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
 
 void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
     auto args = (server::udp::udp_pkt_mngmnt_args *)mngmnt_args;
-    //struct sockaddr_in client_address = pthread_arg->client_address;
-    /* TODO: Get arguments passed to threads here. See lines 22 and 116. */
-
 
     std::cout << "bla" << std::endl;
 

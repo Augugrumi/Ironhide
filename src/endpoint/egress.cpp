@@ -7,8 +7,6 @@
 void endpoint::Egress::manage_exiting_tcp_packets(void * mngmnt_args) {
     auto args = (server::tcp::tcp_pkt_mngmnt_args*)mngmnt_args;
     int new_socket_fd = args->new_socket_fd;
-    //struct sockaddr_in client_address = pthread_arg->client_address;
-    /* TODO: Get arguments passed to threads here. See lines 22 and 116. */
 
     free(args);
 
@@ -25,8 +23,6 @@ void endpoint::Egress::manage_exiting_tcp_packets(void * mngmnt_args) {
 
 void endpoint::Egress::manage_exiting_udp_packets(void * mngmnt_args) {
     auto args = (server::udp::udp_pkt_mngmnt_args *)mngmnt_args;
-    //struct sockaddr_in client_address = pthread_arg->client_address;
-    /* TODO: Get arguments passed to threads here. See lines 22 and 116. */
 
 
     std::cout << "bla" << std::endl;
@@ -48,10 +44,11 @@ void endpoint::Egress::manage_exiting_udp_packets(void * mngmnt_args) {
 }
 
 void endpoint::Egress::manage_pkt_from_chain(void * mngmnt_args) {
-    auto args = (server::udp::udp_pkt_mngmnt_args *)mngmnt_args;
-    //struct sockaddr_in client_address = pthread_arg->client_address;
-    /* TODO: Get arguments passed to threads here. See lines 22 and 116. */
 
+    // TODO integrate clients form communication calling
+    // manage_exiting_udp_packets and manage_exiting_tcp_packets when needed
+
+    auto args = (server::udp::udp_pkt_mngmnt_args *)mngmnt_args;
 
     std::cout << "bla" << std::endl;
 

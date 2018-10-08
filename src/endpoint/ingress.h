@@ -11,6 +11,9 @@
 
 namespace endpoint {
 
+// TODO - save all connection on a map (socket fd)
+//      - once a pkt arrives -> classificator -> retrieve the sfid index -> next
+//      - once a pkt comes back -> db to check the fd(?) -> send to open connection
 class Ingress : public Endpoint {
 private:
     static void manage_entering_tcp_packets(void* args);
