@@ -7,10 +7,14 @@ add_executable(${PROJECT_NAME}
         "server/utils/asynctaskexecutor.cpp"
         "client/clienttcp.cpp"
         "client/clientudp.cpp"
-        "client/client.h" "
+        "client/client.h"
         "endpoint/ingress.cpp"
         "endpoint/endpoint.cpp"
-        "endpoint/egress.cpp)
+        "endpoint/egress.cpp"
+        "db/dbquery.cpp"
+        "db/address.cpp"
+        "classifier/classifier.cpp"
+        "endpoint/connectionentry.cpp")
 
 # Set library version
 set_target_properties(
@@ -62,6 +66,25 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
 find_package(Boost 1.58 COMPONENTS thread REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
+
+pkg_check_modules(LIBJSONCPP REQUIRED jsoncpp>=1.7.2)
+execute_process (
+        COMMAND sh -c "cat /etc/os-release | grep ID_LIKE= | head -n1 | cut -d\"=\" -f2 | tr -d '[:space:]'"
+        OUTPUT_VARIABLE distro_name
+)
+message(STATUS "Checking for distro in use... ${distro_name}")
+if (${distro_name} MATCHES debian)
+    set(JSONCPP_INCLUDE_PATH_FIX TRUE)
+    message(STATUS "Fixing path for jsoncpp on debian based distro")
+else()
+    set(JSONCPP_INCLUDE_PATH_FIX FALSE)
+endif()
+target_link_libraries(${PROJECT_NAME} PRIVATE "-ljsoncpp")
+
+# CUrl in needed
+find_package(CURL REQUIRED)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CURL_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${CURL_LIBRARIES})
 
 configure_file(
         "${ironhide_SOURCE_DIR}/src/config.h.in"
