@@ -11,7 +11,7 @@
 namespace classifier {
 
 // TODO think about how to classify results
-enum pkt_type {TCP, UDP, DEFAULT};
+enum pkt_type {DEFAULT, TCP, UDP};
 
 class Classifier {
 public:
@@ -28,6 +28,7 @@ public:
         void set_pkt(unsigned char * pkt,
                      size_t pkt_len);
         bool operator==(const Mapper&) const;
+        bool operator<(const Mapper&) const;
         static pkt_type default_mapping();
     };
     const char* classify_pkt(unsigned char * pkt,

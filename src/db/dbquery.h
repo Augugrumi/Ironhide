@@ -9,8 +9,8 @@
 #include <memory>
 #include <functional>
 #include <curl/curl.h>
-#include <jsoncpp/json/value.h>
 
+#include "jsoncpp.h"
 #include "address.h"
 
 namespace db{

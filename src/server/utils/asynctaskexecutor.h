@@ -10,6 +10,7 @@
 #include <memory>
 #include <functional>
 #include <thread>
+#include <boost/log/trivial.hpp>
 
 #if HAS_BOOST_THREAD
 #include <boost/asio/thread_pool.hpp>

@@ -19,9 +19,12 @@ void classifier::Classifier::Mapper::set_pkt(unsigned char *pkt,
     type_ = classifier::DEFAULT;
 }
 
-bool classifier::Classifier::Mapper::operator==(
-        const classifier::Classifier::Mapper & m) const {
+bool classifier::Classifier::Mapper::operator==(const Mapper & m) const {
     return type_ == m.type_;
+}
+
+bool classifier::Classifier::Mapper::operator<(const Mapper & m) const {
+    return type_ < m.type_;
 }
 
 classifier::pkt_type classifier::Classifier::Mapper::default_mapping() {

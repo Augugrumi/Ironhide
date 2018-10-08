@@ -58,14 +58,10 @@ find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE "-pthread")
 
 # Boost system is needed
-find_package(Boost 1.58 COMPONENTS system REQUIRED)
+find_package(Boost 1.58 COMPONENTS system thread log REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
-
-# Boost thread is needed
-find_package(Boost 1.58 COMPONENTS thread REQUIRED)
-target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
+target_compile_definitions(${PROJECT_NAME} PRIVATE -DBOOST_LOG_DYN_LINK)
 
 pkg_check_modules(LIBJSONCPP REQUIRED jsoncpp>=1.7.2)
 execute_process (

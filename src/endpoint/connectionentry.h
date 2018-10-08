@@ -20,7 +20,7 @@ public:
     ConnectionEntry(const std::string& ip_src,
                     const std::string& ip_dst,
                     const uint16_t & port_src,
-                    const uint16_t & port_dst
+                    const uint16_t & port_dst,
                     const std::string & sfcid);
     bool operator==(const ConnectionEntry& ce);
 
