@@ -14,7 +14,8 @@ add_executable(${PROJECT_NAME}
         "db/dbquery.cpp"
         "db/address.cpp"
         "classifier/classifier.cpp"
-        "endpoint/connectionentry.cpp")
+        "endpoint/connectionentry.cpp"
+        "db/exceptions/failure.cpp")
 
 # Set library version
 set_target_properties(
