@@ -8,13 +8,15 @@
 #include <string>
 #include <memory>
 #include <functional>
+#include <algorithm>
 #include <curl/curl.h>
 //#include <boost/log/trivial.hpp>
 
 #include "jsoncpp.h"
-#include "address.h"
+#include "log.h"
 #include "exceptions/failure.h"
-#include "../utils/log.h"
+#include "utils/address.h"
+#include "utils/urlbuilder.h"
 
 namespace db{
 
@@ -50,26 +52,39 @@ enum protocol_type{TCP, UDP};
 // TODO make requests to roulette really
 class DBQuery {
 private:
-    const Address roulette_addr;
+    const utils::Address roulette_addr;
     CURL* curl = nullptr;
 
     static size_t curl_callback(void*, size_t, size_t, std::string*);
+    bool is_op_ok(const std::string&);
+    bool handle_req(const CURLcode&, std::function<bool()>);
 public:
     DBQuery(const std::string&, uint16_t port);
-    DBQuery(const Address&);
+    DBQuery(const utils::Address&);
 
-    bool create_entry(const char* ip_src, const char* ip_dst,
-                      uint16_t port_src, uint16_t port_dst,
+    bool create_entry(const char* ip_src,
+                      const char* ip_dst,
+                      uint16_t port_src,
+                      uint16_t port_dst,
                       protocol_type protocol,
                       const char* id_sfc,
                       endpoint_type endpoint,
-                      const char* endpoint_ip, int endpoint_socket);
-    Address update_endpoint(char* ip_src, char* ip_dst,
-                         uint16_t port_src, uint16_t port_dst,
+                      const char* endpoint_ip,
+                      const char* endpoint_socket);
+    bool update_endpoint(const char* ip_src,
+                         const char* ip_dst,
+                         uint16_t port_src,
+                         uint16_t port_dst,
                          protocol_type protocol,
-                         char* id_sfc,
+                         const char* id_sfc,
                          endpoint_type endpoint,
-                         char* endpoint_ip, int endpoint_socket);
+                         const char* endpoint_ip,
+                         const char* endpoint_socket,
+                         const char* new_ip,
+                         const char* new_socked_id);
+
+    // TODO get_next_route, get_chain_route, delete_endpoint, get_endpoint
+
     ~DBQuery();
 };
 

@@ -4,6 +4,9 @@
 #include "endpoint/ingress.h"
 #include "endpoint/egress.h"
 
+#include "db/dbquery.h"
+#include "log.h"
+
 void usage() {
     const char message[] =
             "\n"
@@ -17,7 +20,7 @@ void usage() {
 }
 
 int main(int argc, char* argv[]) {
-    uint16_t ext_port = 8787;
+    /*uint16_t ext_port = 8787;
     uint16_t int_port = 8778;
     bool is_egress = false;
 
@@ -48,5 +51,11 @@ int main(int argc, char* argv[]) {
         i.start(int_port, ext_port);
     }
 
-    return 0;
+    return 0;*/
+
+    utils::Log::instance()->set_log_level(utils::Log::Level::trace);
+
+    db::DBQuery query("localhost", 57684);
+    bool result = query.create_entry("123.123.123.123", "222.222.222.222", 80, 80, db::protocol_type::TCP, "bla", db::endpoint_type::INGRESS_T, "42.42.42.42", "456");
+    LOG(linfo, "Operation succeded? " + std::to_string(result));
 }

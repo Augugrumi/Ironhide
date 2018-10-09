@@ -6,12 +6,12 @@ AsyncTaskExecutor* AsyncTaskExecutor::inst = new AsyncTaskExecutor();
 
 AsyncTaskExecutor::AsyncTaskExecutor() noexcept {
 #if HAS_BOOST_THREAD
-    BOOST_LOG_TRIVIAL(debug) << "Using Boost Thread pool";
+    LOG(ldebug, "Using Boost Thread pool");
 thread_pool = std::unique_ptr<boost::asio::thread_pool>(
     new boost::asio::thread_pool(std::thread::hardware_concurrency()
 ));
 #else
-    BOOST_LOG_TRIVIAL(debug) << "Using fallback Thread pool";
+    LOG(ldebug, "Using fallback Thread pool");
     thread_pool = std::unique_ptr<utils::ThreadPool>(new utils::ThreadPool(std::thread::hardware_concurrency()));
 #endif
 }

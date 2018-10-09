@@ -21,7 +21,8 @@ add_executable(${PROJECT_NAME}
         "endpoint/utils/sfcheaderstruct.h"
         "endpoint/utils/sfcfixedlengthheader.cpp"
         "endpoint/utils/sfcutilities.cpp"
-        "utils/log.cpp")
+        "utils/log.cpp"
+        "db/utils/urlbuilder.cpp")
 
 # Set library version
 set_target_properties(
