@@ -50,23 +50,6 @@ option(BOOST_THREAD "For boost thread pool support" ON)
 
 set(BUFFER_SIZE 65536)
 
-# If enabled, search and use Boost threads
-if (BOOST_THREAD)
-    message(STATUS "Trying to use Boost Thread (if Boost version >= 1.66...)")
-    # We're going to log only with boost log
-    find_package(Boost 1.66 COMPONENTS thread)
-    if (Boost_FOUND)
-        message(STATUS "Boost Thread enabled")
-        set(HAS_BOOST_THREAD TRUE)
-    else()
-        message(STATUS "Boost Thread disabled")
-        set(HAS_BOOST_THREAD FALSE)
-    endif()
-else()
-    message(STATUS "Boost Thread disabled, using standard threads")
-    set(HAS_BOOST_THREAD FALSE)
-endif()
-
 # Search for basic Thread support
 find_package(Threads REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE "-pthread")
