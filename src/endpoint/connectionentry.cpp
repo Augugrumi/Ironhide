@@ -12,13 +12,18 @@ endpoint::ConnectionEntry::ConnectionEntry(const std::string &ip_src,
         : ip_src_(ip_src), ip_dst_(ip_dst),
           port_src_(port_src), port_dst_(port_dst){}
 
-bool
-endpoint::ConnectionEntry::operator==(const endpoint::ConnectionEntry &ce) {
+bool endpoint::ConnectionEntry::operator==(
+        const endpoint::ConnectionEntry &ce) const {
     return ip_src_ == ce.ip_src_ &&
            ip_dst_ == ce.ip_dst_ &&
            port_src_ == ce.port_src_ &&
            port_dst_ == ce.port_dst_ &&
            sfcid_ == ce.sfcid_;
+}
+
+bool endpoint::ConnectionEntry::operator<(
+        const endpoint::ConnectionEntry &ce) const {
+    return sfcid_ < ce.sfcid_;
 }
 
 const std::string &endpoint::ConnectionEntry::get_ip_src() const {

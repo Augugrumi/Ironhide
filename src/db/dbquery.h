@@ -14,7 +14,7 @@
 #include "jsoncpp.h"
 #include "address.h"
 #include "exceptions/failure.h"
-#include "log.h"
+#include "../utils/log.h"
 
 namespace db{
 

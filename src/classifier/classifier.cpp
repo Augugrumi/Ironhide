@@ -4,7 +4,7 @@
 
 #include "classifier.h"
 
-const char * classifier::Classifier::classify_pkt(unsigned char *pkt,
+char* classifier::Classifier::classify_pkt(unsigned char *pkt,
                                                   size_t pkt_len) {
     classifier::Classifier::Mapper m;
     m.set_pkt(pkt, pkt_len);

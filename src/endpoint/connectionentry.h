@@ -22,16 +22,12 @@ public:
                     const uint16_t & port_src,
                     const uint16_t & port_dst,
                     const std::string & sfcid);
-    bool operator==(const ConnectionEntry& ce);
-
+    bool operator==(const ConnectionEntry& ce) const;
+    bool operator<(const ConnectionEntry& ce) const;
     const std::string &get_ip_src() const;
-
     const std::string &get_ip_dst() const;
-
     const uint16_t get_port_src() const;
-
     const uint16_t get_port_dst() const;
-
     const std::string &get_sfcid() const;
 };
 

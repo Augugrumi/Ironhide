@@ -56,6 +56,7 @@ void server::udp::ServerUDP::run() {
             free(args);
             continue;
         }
+        args->pkt_len = pkt_len;
         args->socket_fd = socket_fd;
         /* Initialise pthread argument. */
         //pthread_arg->new_socket_fd = new_socket_fd;

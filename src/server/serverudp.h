@@ -27,13 +27,13 @@ typedef struct udp_pkt_mngmnt_args {
     int socket_fd;
     struct sockaddr_in client_address;
     char* pkt;
-
+    ssize_t pkt_len;
 } pthread_arg_t;
 
 class ServerUDP : public Server {
 public:
     ServerUDP(uint16_t port);
-    void run();
+    void run() override;
 };
 
 } // namespace tcp

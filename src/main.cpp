@@ -1,8 +1,6 @@
 #include <iostream>
 #include <thread>
 
-#include "server/servertcp.h"
-#include "server/serverudp.h"
 #include "endpoint/ingress.h"
 #include "endpoint/egress.h"
 

@@ -31,7 +31,7 @@ public:
         bool operator<(const Mapper&) const;
         static pkt_type default_mapping();
     };
-    const char* classify_pkt(unsigned char * pkt,
+    char* classify_pkt(unsigned char * pkt,
                              size_t pkt_len);
 };
 
