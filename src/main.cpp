@@ -57,5 +57,7 @@ int main(int argc, char* argv[]) {
 
     db::DBQuery query("localhost", 57684);
     bool result = query.create_entry("123.123.123.123", "222.222.222.222", 80, 80, db::protocol_type::TCP, "bla", db::endpoint_type::INGRESS_T, "42.42.42.42", "456");
-    LOG(linfo, "Operation succeded? " + std::to_string(result));
+    LOG(linfo, "1 - Operation succeded? " + std::to_string(result));
+    result = query.update_endpoint("123.123.123.123", "222.222.222.222", 80, 80, db::protocol_type::TCP, "bla", db::endpoint_type::INGRESS_T, "42.42.42.42", "456", "255.255.255.255", "69");
+    LOG(linfo, "2 - Operation succeded? " + std::to_string(result));
 }

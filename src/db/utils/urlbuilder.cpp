@@ -1,4 +1,5 @@
 #include "urlbuilder.h"
+#include "log.h"
 
 const std::string db::utils::URLBuilder::HTTP_PREFIX = "http";
 const std::string db::utils::URLBuilder::HTTPS_PREFIX = "https";
@@ -13,10 +14,10 @@ db::utils::URLBuilder db::utils::URLBuilder::set_address(const Address& address)
 
 db::utils::URLBuilder db::utils::URLBuilder::add_path(const char* path) {
     std::string toAdd;
-    toAdd.append(path);
-    if (url[url.size()-1] != *Address::PATH_SEPARATOR) {
+    if (path[0] != *Address::PATH_SEPARATOR) {
         toAdd.append(Address::PATH_SEPARATOR);
     }
+    toAdd.append(path);
     paths.push_back(toAdd);
     return *this;
 }
