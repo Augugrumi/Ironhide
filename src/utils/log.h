@@ -38,22 +38,22 @@ private:
 };
 
 #define LOG(lvl, msg) \
-    utils::Log::instance()->log(lvl, msg);
+    ::utils::Log::instance()->log(lvl, msg);
 
 #define ltrace \
-    utils::Log::Level::trace
+    ::utils::Log::Level::trace
 
 #define ldebug \
-    utils::Log::Level::debug
+    ::utils::Log::Level::debug
 
 #define linfo \
-    utils::Log::Level::info
+    ::utils::Log::Level::info
 
 #define lwarn \
-    utils::Log::Level::warning
+    ::utils::Log::Level::warning
 
 #define lfatal \
-    utils::Log::Level::fatal
+    ::utils::Log::Level::fatal
 
 }
 #endif // LOG_H
