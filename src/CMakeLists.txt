@@ -12,7 +12,6 @@ add_executable(${PROJECT_NAME}
         "endpoint/endpoint.cpp"
         "endpoint/egress.cpp"
         "db/dbquery.cpp"
-        "db/address.cpp"
         "db/exceptions/failure.cpp"
         "classifier/classifier.cpp"
         "endpoint/connectionentry.cpp"
