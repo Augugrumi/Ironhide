@@ -43,7 +43,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
                             headers.second.source, const_cast<char*>(
                                     utils::PacketUtils::int_to_ip(
                                             headers.first.daddr).c_str()),
-                            headers.second.dest, 1024, 0);
+                            headers.second.dest, DEFAULT_TTL, 0);
             // TODO set next_ip and next_port with call to roulette
             utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
                                                             flh, formatted_pkt);
@@ -95,7 +95,7 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
                             headers.second.source, const_cast<char*>(
                                     utils::PacketUtils::int_to_ip(
                                             headers.first.daddr).c_str()),
-                            headers.second.dest, 1024, 0);
+                            headers.second.dest, DEFAULT_TTL, 0);
             // TODO set next_ip and next_port with call to roulette
             utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
                                                             flh, formatted_pkt);

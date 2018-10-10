@@ -5,6 +5,8 @@
 #ifndef IRONHIDE_EGRESS_H
 #define IRONHIDE_EGRESS_H
 
+#include "config.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <linux/ip.h>

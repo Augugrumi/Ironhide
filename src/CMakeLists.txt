@@ -48,6 +48,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE "${ironhide_SOURCE_DIR}/src/s
 option(BOOST_THREAD "For boost thread pool support" ON)
 
 set(BUFFER_SIZE 65536)
+set(DEFAULT_TTL 1024)
 
 # Search for basic Thread support
 find_package(Threads REQUIRED)

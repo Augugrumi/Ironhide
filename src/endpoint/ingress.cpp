@@ -38,7 +38,7 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
                             headers.second.source,const_cast<char*>(
                                     utils::PacketUtils::int_to_ip(
                                             headers.first.daddr).c_str()),
-                            headers.second.dest, 1024, 0);
+                            headers.second.dest, DEFAULT_TTL, 0);
             char* next_ip;
             uint16_t next_port;
             client::udp::ClientUDP().send_and_wait_response(pkt, read_size, next_ip, next_port);
@@ -102,7 +102,7 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
                     headers.second.source,
                     const_cast<char*>(utils::PacketUtils::int_to_ip(
                             headers.first.daddr).c_str()),
-                    headers.second.dest, 1024, 0);
+                    headers.second.dest, DEFAULT_TTL, 0);
 
     char* next_ip;
     uint16_t next_port;

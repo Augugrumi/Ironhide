@@ -6,6 +6,8 @@
 
 #cmakedefine BUFFER_SIZE @BUFFER_SIZE@
 
+#cmakedefine DEFAULT_TTL @DEFAULT_TTL@
+
 #cmakedefine01 JSONCPP_INCLUDE_PATH_FIX
 
 #endif // CONFIG_H_IN
