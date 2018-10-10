@@ -34,11 +34,11 @@ const std::string &endpoint::ConnectionEntry::get_ip_dst() const {
     return ip_dst_;
 }
 
-const uint16_t endpoint::ConnectionEntry::get_port_src() const {
+uint16_t endpoint::ConnectionEntry::get_port_src() const {
     return port_src_;
 }
 
-const uint16_t endpoint::ConnectionEntry::get_port_dst() const {
+uint16_t endpoint::ConnectionEntry::get_port_dst() const {
     return port_dst_;
 }
 

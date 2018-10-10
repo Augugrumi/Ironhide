@@ -26,8 +26,8 @@ public:
     bool operator<(const ConnectionEntry& ce) const;
     const std::string &get_ip_src() const;
     const std::string &get_ip_dst() const;
-    const uint16_t get_port_src() const;
-    const uint16_t get_port_dst() const;
+    uint16_t get_port_src() const;
+    uint16_t get_port_dst() const;
     const std::string &get_sfcid() const;
 };
 
