@@ -29,9 +29,9 @@ protected:
     void add_entry(ConnectionEntry, socket_fd, Protocol);
     void delete_entry(ConnectionEntry); // even by socket?
     socket_fd retrieve_connection(ConnectionEntry);
-    int retrieve_file_descriptior(char* source_ip, uint16_t source_port,
-                                  char* dest_ip, uint16_t dest_port,
-                                  Protocol pr);
+    int retrieve_file_descriptor(char* source_ip, uint16_t source_port,
+                                 char* dest_ip, uint16_t dest_port,
+                                 Protocol pr);
 public:
     virtual void start(uint16_t int_port, uint16_t ext_port) = 0;
 };
