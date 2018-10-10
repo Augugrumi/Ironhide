@@ -53,9 +53,13 @@ int main(int argc, char* argv[]) {
 
     return 0;*/
 
-    utils::Log::instance()->set_log_level(utils::Log::Level::trace);
+    utils::Log::instance()->set_log_level(utils::Log::Level::debug);
 
     db::DBQuery query("localhost", 57684);
-    bool result = query.create_entry("123.123.123.123", "222.222.222.222", 80, 80, db::protocol_type::TCP, "bla", db::endpoint_type::INGRESS_T, "42.42.42.42", "456");
-    LOG(linfo, "Operation succeded? " + std::to_string(result));
+    std::string result = query.create_entry("123.123.123.123", "222.222.222.222", 80, 80, db::protocol_type::TCP, "bla", db::endpoint_type::INGRESS_T, "42.42.42.42", "456");
+    LOG(linfo, "1 - Operation succeded? " + result);
+    bool result1 = query.update_endpoint("123.123.123.123", "222.222.222.222", 80, 80, db::protocol_type::TCP, "bla", db::endpoint_type::INGRESS_T, "42.42.42.42", "456", "255.255.255.255", "69");
+    LOG(linfo, "2 - Operation succeded? " + std::to_string(result1));
+    result1 = query.delete_endpoint(result.c_str());
+    LOG(linfo, "3 - Operation succeded? " + std::to_string(result1));
 }

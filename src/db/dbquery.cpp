@@ -22,7 +22,7 @@ size_t db::DBQuery::curl_callback(void* ptr, size_t size,
     return size * nmemb;
 }
 
-bool db::DBQuery::create_entry(const char *ip_src, const char *ip_dst,
+std::string db::DBQuery::create_entry(const char *ip_src, const char *ip_dst,
                                uint16_t port_src, uint16_t port_dst,
                                protocol_type protocol,
                                const char *id_sfc,
@@ -77,7 +77,28 @@ bool db::DBQuery::create_entry(const char *ip_src, const char *ip_dst,
     CURLcode res = curl_easy_perform(curl);
 
     curl_slist_free_all(header);
-    return handle_req(res, std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
+    if (handle_req(
+                res,
+                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
+
+    }
+
+
+    Json::CharReaderBuilder builder;
+    std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+    Json::Value response;
+
+    std::string errors;
+    LOG(ldebug, "Data obtained: " + req_data_res);
+    reader->parse(req_data_res.c_str(),
+                  req_data_res.c_str() + req_data_res.size(),
+                  &response,
+                  &errors);
+
+
+    std::string to_return = response[reply::CONTENT]["id"].toStyledString();
+    // This removes the double quotes
+    return to_return.substr(1, to_return.size() - 3);
 }
 
 bool db::DBQuery::update_endpoint(const char* ip_src, const char* ip_dst,
@@ -144,7 +165,28 @@ bool db::DBQuery::update_endpoint(const char* ip_src, const char* ip_dst,
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json.c_str());
 
     CURLcode res = curl_easy_perform(curl);
-    return handle_req(res, std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
+    return handle_req(
+                res,
+                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
+}
+
+bool db::DBQuery::delete_endpoint(const char* id) {
+    const std::string req_addr = utils::URLBuilder()
+            .set_address(roulette_addr)
+            .add_path(ENDPOINT_PREFIX)
+            .add_path(id)
+            .build();
+    std::string req_data_res;
+
+    curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
+
+    CURLcode res = curl_easy_perform(curl);
+    return handle_req(
+                res,
+                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
 }
 
 bool db::DBQuery::handle_req(const CURLcode& res, std::function<bool()> cb) {

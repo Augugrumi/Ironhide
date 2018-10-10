@@ -62,7 +62,7 @@ public:
     DBQuery(const std::string&, uint16_t port);
     DBQuery(const utils::Address&);
 
-    bool create_entry(const char* ip_src,
+    std::string create_entry(const char* ip_src,
                       const char* ip_dst,
                       uint16_t port_src,
                       uint16_t port_dst,
@@ -83,7 +83,9 @@ public:
                          const char* new_ip,
                          const char* new_socked_id);
 
-    // TODO get_next_route, get_chain_route, delete_endpoint, get_endpoint
+    bool delete_endpoint(const char* id);
+
+    // TODO get_next_route, get_chain_route, get_endpoint
 
     ~DBQuery();
 };
