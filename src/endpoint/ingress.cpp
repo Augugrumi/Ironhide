@@ -27,14 +27,28 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
                             headers.second.source, headers.second.dest, sfcid),
                       new_socket_fd,
                       Protocol::TCP);
+
+
+            // TODO check how to set ttl
+            sfc_header flh =
+                    utils::sfc_header::SFCUtilities::create_header(
+                            atoi(sfcid), 0,const_cast<char*>(
+                                    utils::PacketUtils::int_to_ip(
+                                            headers.first.src_addr).c_str()),
+                            headers.second.source,const_cast<char*>(
+                                    utils::PacketUtils::int_to_ip(
+                                            headers.first.dst_addr).c_str()),
+                            headers.second.dest, 1024, 0);
+            char* next_ip;
+            uint16_t next_port;
+            client::udp::ClientUDP().send_and_wait_response(pkt, read_size, next_ip, next_port);
+
             prev_sfcid = sfcid;
             first_pkt = false;
         }
 
         //TODO retrieve next hop from db
-        char* next_ip;
-        uint16_t next_port;
-        client::udp::ClientUDP().send_and_wait_response(pkt, read_size, next_ip, next_port);
+
         //Send the message in to the vnf
         //write(client_sock , client_message , strlen(client_message));
     }
@@ -48,12 +62,6 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
     }
 
     free(args);
-
-
-    /* TODO: Put client interaction code here. For example, use
-     * write(new_socket_fd,,) and read(new_socket_fd,,) to send and receive
-     * messages with the client.
-     */
 
     //close(new_socket_fd);
 }
@@ -87,13 +95,14 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
                    Protocol::UDP);
 
     // TODO check how to set ttl
-    sfc_header flh = utils::sfc_header::SFCUtilities::create_header(atoi(sfcid),
-            0,
-                                                                    const_cast<char*>(utils::PacketUtils::int_to_ip(headers.first.src_addr).c_str()),
-            headers.second.source,
-                                                                    const_cast<char*>(utils::PacketUtils::int_to_ip(headers.first.dst_addr).c_str()),
-            headers.second.dest,
-            1024, 0);
+    sfc_header flh =
+            utils::sfc_header::SFCUtilities::create_header(atoi(sfcid), 0,
+                    const_cast<char*>(utils::PacketUtils::int_to_ip(
+                            headers.first.src_addr).c_str()),
+                    headers.second.source,
+                    const_cast<char*>(utils::PacketUtils::int_to_ip(
+                            headers.first.dst_addr).c_str()),
+                    headers.second.dest, 1024, 0);
 
     char* next_ip;
     uint16_t next_port;
@@ -107,10 +116,6 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
 
     delete(args->pkt);
     free(args);
-    /* TODO: Put client interaction code here. For example, use
-     * write(new_socket_fd,,) and read(new_socket_fd,,) to send and receive
-     * messages with the client.
-     */
 }
 
 void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
@@ -171,10 +176,6 @@ void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
 
     delete(args->pkt);
     free(args);
-    /* TODO: Put client interaction code here. For example, use
-     * write(new_socket_fd,,) and read(new_socket_fd,,) to send and receive
-     * messages with the client.
-     */
 }
 
 void endpoint::Ingress::start(uint16_t int_port, uint16_t ext_port) {
