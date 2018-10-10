@@ -65,8 +65,6 @@ std::string db::DBQuery::create_entry(const Query& query) {
 
 
         return response[reply::CONTENT]["id"].asString();
-        // This removes the double quotes
-        //return to_return.substr(1, to_return.size() - 3);
     }
 
     return std::string();
@@ -98,12 +96,6 @@ bool db::DBQuery::update_endpoint(const Query& query, const Endpoint& to_add) {
     return handle_req(
                 res,
                 std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
-}
-
-std::string db::DBQuery::sanitize(const std::string& to_sanitize) {
-    std::string res(to_sanitize);
-    std::replace(res.begin(), res.end(), '\0', ' ');
-    return res;
 }
 
 db::DBQuery::Entry db::DBQuery::get_entry(const char* id) {
@@ -253,8 +245,7 @@ std::string db::DBQuery::Endpoint::to_json() const {
         json[query::SOCK_EGRESS] = socket_id;
     }
 
-    std::string res = json.toStyledString();
-    std::replace(res.begin(), res.end(), '\0', ' ');
+    std::string res = json.asString();
     return res;
 }
 // End Endpoint
@@ -331,10 +322,7 @@ std::string db::DBQuery::Query::to_json() const {
         }
     }
 
-    std::string res = json_res.toStyledString();
-    std::replace(res.begin(), res.end(), '\0', ' ');
-
-    return res;
+    return json_res.asString();
 }
 
 std::string db::DBQuery::Query::to_url() const {

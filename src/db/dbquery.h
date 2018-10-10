@@ -60,7 +60,6 @@ private:
     static size_t curl_callback(void*, size_t, size_t, std::string*);
     bool is_op_ok(const std::string&);
     bool handle_req(const CURLcode&, std::function<bool()>);
-    static std::string sanitize(const std::string&);
 public:
     DBQuery(const std::string&, uint16_t port);
     DBQuery(const utils::Address&);
@@ -141,8 +140,8 @@ public:
     typedef Query Entry;
 
     std::string create_entry(const Query&);
-    bool delete_entry(const char* id);
     Entry get_entry(const char* id);
+    bool delete_entry(const char* id);
 
     bool update_endpoint(const Query&, const Endpoint&);
 
