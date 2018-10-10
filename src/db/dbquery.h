@@ -9,6 +9,7 @@
 #include <memory>
 #include <functional>
 #include <algorithm>
+#include <cstdlib>
 #include <curl/curl.h>
 
 #include "jsoncpp.h"
@@ -59,6 +60,7 @@ private:
     static size_t curl_callback(void*, size_t, size_t, std::string*);
     bool is_op_ok(const std::string&);
     bool handle_req(const CURLcode&, std::function<bool()>);
+    static std::string sanitize(const std::string&);
 public:
     DBQuery(const std::string&, uint16_t port);
     DBQuery(const utils::Address&);
@@ -81,6 +83,7 @@ public:
 
     class Query {
     private:
+        const std::string item_id;
         const std::string ip_src;
         const std::string ip_dst;
         const uint16_t port_src;
@@ -90,12 +93,14 @@ public:
         const std::vector<Endpoint> endpoints;
         Query(const std::string&,
               const std::string&,
+              const std::string&,
               uint16_t,
               uint16_t,
               protocol_type,
               const std::string&,
               const std::vector<Endpoint>&);
     public:
+        std::string get_item_id() const;
         std::string get_ip_src() const;
         std::string get_ip_dst() const;
         uint16_t get_port_src() const;
@@ -109,6 +114,7 @@ public:
 
         class Builder {
         private:
+            std::string item_id;
             std::string ip_src;
             std::string ip_dst;
             uint16_t port_src;
@@ -118,6 +124,7 @@ public:
             std::vector<Endpoint> endpoints;
         public:
             Builder() = default;
+            Builder& set_item_id(const std::string&);
             Builder& set_ip_src(const std::string&);
             Builder& set_ip_dst(const std::string&);
             Builder& set_port_src(uint16_t);
@@ -131,21 +138,14 @@ public:
         friend Query Query::Builder::build() const;
     };
 
-    std::string create_entry(const Query&);
-    bool update_endpoint(const Query&, const Endpoint&);
-    /*bool update_endpoint(const char* ip_src,
-                         const char* ip_dst,
-                         uint16_t port_src,
-                         uint16_t port_dst,
-                         protocol_type protocol,
-                         const char* id_sfc,
-                         endpoint_type endpoint,
-                         const char* endpoint_ip,
-                         const char* endpoint_socket,
-                         const char* new_ip,
-                         const char* new_socked_id);*/
+    typedef Query Entry;
 
-    bool delete_endpoint(const char* id);
+    std::string create_entry(const Query&);
+    bool delete_entry(const char* id);
+    Entry get_entry(const char* id);
+
+    bool update_endpoint(const Query&, const Endpoint&);
+
 
     // TODO get_next_route, get_chain_route, get_endpoint
 };

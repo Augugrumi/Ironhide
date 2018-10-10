@@ -64,9 +64,9 @@ std::string db::DBQuery::create_entry(const Query& query) {
                       &errors);
 
 
-        std::string to_return = response[reply::CONTENT]["id"].toStyledString();
+        return response[reply::CONTENT]["id"].asString();
         // This removes the double quotes
-        return to_return.substr(1, to_return.size() - 3);
+        //return to_return.substr(1, to_return.size() - 3);
     }
 
     return std::string();
@@ -100,76 +100,70 @@ bool db::DBQuery::update_endpoint(const Query& query, const Endpoint& to_add) {
                 std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
 }
 
-/*bool db::DBQuery::update_endpoint(const char* ip_src, const char* ip_dst,
-                                  uint16_t port_src, uint16_t port_dst,
-                                  protocol_type protocol,
-                                  const char* id_sfc,
-                                  endpoint_type endpoint,
-                                  const char* actual_ip,
-                                  const char* actual_socket,
-                                  const char* new_ip,
-                                  const char* new_socket_id) {
+std::string db::DBQuery::sanitize(const std::string& to_sanitize) {
+    std::string res(to_sanitize);
+    std::replace(res.begin(), res.end(), '\0', ' ');
+    return res;
+}
 
-    struct curl_slist* header = nullptr;
-    Json::Value val;
-    std::string req_data_res;
-    std::string kind_of_id;
-    std::string kind_of_ip;
-    std::string type_of_xgress;
-    std::string type_of_protocol;
-    std::string req_addr;
-
-    if (endpoint == INGRESS_T) {
-        req_addr.append(query::INGRESS);
-        kind_of_id = query::SOCK_EGRESS;
-        kind_of_ip = query::EGRESS_IP;
-        type_of_xgress = query::EGRESS;
-    } else {
-        req_addr.append(query::EGRESS);
-        kind_of_id = query::SOCK_INGRESS;
-        kind_of_ip = query::INGRESS_IP;
-        type_of_xgress = query::INGRESS;
-    }
-    (protocol == TCP)? type_of_protocol.append("tcp") :
-                       type_of_protocol.append("udp");
-
-    req_addr = utils::URLBuilder()
+db::DBQuery::Entry db::DBQuery::get_entry(const char* id) {
+    const std::string req_addr = utils::URLBuilder()
             .set_address(roulette_addr)
             .add_path(ENDPOINT_PREFIX)
-            .add_path(type_of_xgress)
-            .add_path(ip_src)
-            .add_path(ip_dst)
-            .add_path(std::to_string(port_src))
-            .add_path(std::to_string(port_dst))
-            .add_path(id_sfc)
-            .add_path(type_of_protocol)
-            .add_path(actual_ip)
-            .add_path(actual_socket)
+            .add_path(id)
             .build();
+    std::string req_data_res;
 
-    val[kind_of_ip] = new_ip;
-    val[kind_of_id] = new_socket_id;
-
-    std::string json = val.toStyledString();
-    std::replace(json.begin(), json.end(), '\0', ' ');
-
-    header = curl_slist_append(header, "Content-Type: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
     curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-    //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
-    //curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json.c_str());
 
     CURLcode res = curl_easy_perform(curl);
-    return handle_req(
+    if (handle_req(
                 res,
-                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
-}*/
+                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
 
-bool db::DBQuery::delete_endpoint(const char* id) {
+        Json::CharReaderBuilder builder;
+        std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+        Json::Value response;
+
+        std::string errors;
+        reader->parse(req_data_res.c_str(),
+                      req_data_res.c_str() + req_data_res.size(),
+                      &response,
+                      &errors);
+
+        Json::Value content = response[reply::CONTENT];
+
+        protocol_type prt = content[query::PROTOCOL] == "tcp" ? TCP : UDP;
+        Endpoint ingress(content[query::INGRESS_IP].asString(),
+                         content[query::SOCK_INGRESS].asString(),
+                         INGRESS_T);
+
+        Endpoint egress(content[query::EGRESS_IP].asString(),
+                        content[query::SOCK_EGRESS].asString(),
+                        EGRESS_T);
+
+
+        return db::DBQuery::Entry::Builder()
+                .set_item_id(content["_id"]["$oid"].asString())
+                .set_id_sfc(content[query::SFC_ID].asString())
+                .set_ip_src(content[query::SRC_IP].asString())
+                .set_ip_dst(content[query::DST_IP].asString())
+                .set_port_src(content[query::SRC_PORT].asUInt())
+                .set_port_dst(content[query::DST_PORT].asUInt())
+                .set_protocol(prt)
+                .set_endpoint(ingress)
+                .set_endpoint(egress)
+                .build();
+    } else {
+        return db::DBQuery::Entry::Builder().build();
+    }
+
+}
+
+bool db::DBQuery::delete_entry(const char* id) {
     const std::string req_addr = utils::URLBuilder()
             .set_address(roulette_addr)
             .add_path(ENDPOINT_PREFIX)
@@ -266,17 +260,17 @@ std::string db::DBQuery::Endpoint::to_json() const {
 // End Endpoint
 
 // Query
-db::DBQuery::Query::Query(const std::string& new_ip_src,
+db::DBQuery::Query::Query(const std::string& new_item_id,
+                          const std::string& new_ip_src,
                           const std::string& new_ip_dst,
                           uint16_t new_port_src,
                           uint16_t new_port_dst,
                           db::protocol_type type_of_protocol,
                           const std::string& new_id_sfc,
                           const std::vector<Endpoint>& new_endpoints)
-    : ip_src(new_ip_src), ip_dst(new_ip_dst), port_src(new_port_src),
-      port_dst(new_port_dst), prt(type_of_protocol), id_sfc(new_id_sfc),
-      endpoints(new_endpoints) {
-
+    : item_id(new_item_id), ip_src(new_ip_src), ip_dst(new_ip_dst),
+      port_src(new_port_src), port_dst(new_port_dst), prt(type_of_protocol),
+      id_sfc(new_id_sfc), endpoints(new_endpoints) {
 }
 
 std::string db::DBQuery::Query::get_ip_src() const {
@@ -316,6 +310,7 @@ db::DBQuery::Endpoint db::DBQuery::Query::get_endpoint(db::endpoint_type endpoin
     throw db::exceptions::logic_failure::endpoint_not_found("Endpoint not found");
 }
 
+// Pay attention! Here item_id is not included in the JSON file.
 std::string db::DBQuery::Query::to_json() const {
     Json::Value json_res;
 
@@ -346,33 +341,42 @@ std::string db::DBQuery::Query::to_url() const {
     utils::URLBuilder query_builder =  utils::URLBuilder()
             .add_path(ENDPOINT_PREFIX);
 
-    if (endpoints.size() == 1) {
-        endpoints[0].get_endpoint_typology() == INGRESS_T ?
-                    query_builder.add_path(query::EGRESS) :
-                    query_builder.add_path(query::INGRESS);
+    if (endpoints.size() != 0) {
+        if (endpoints.size() == 1) {
+            endpoints[0].get_endpoint_typology() == INGRESS_T ?
+                        query_builder.add_path(query::EGRESS) :
+                        query_builder.add_path(query::INGRESS);
+
+            query_builder.add_path(ip_src)
+                    .add_path(ip_dst)
+                    .add_path(std::to_string(port_src))
+                    .add_path(std::to_string(port_dst))
+                    .add_path(id_sfc)
+                    .add_path(
+                        prt == TCP ? "tcp" : "udp"
+                        )
+                    .add_path(endpoints[0].get_ip())
+                    .add_path(endpoints[0].get_socket_id());
+
+            return query_builder.build();
+        } else {
+            throw exceptions::logic_failure::query_ambiguous("More than one "
+                                                             "endpoint for this"
+                                                             "query: which should"
+                                                             "I use?");
+        }
     } else {
-        throw exceptions::logic_failure::query_ambiguous("More than one "
-                                                         "endpoint for this"
-                                                         "query: which should"
-                                                         "I use?");
+        query_builder.add_path(item_id);
+        return query_builder.build();
     }
-
-    query_builder.add_path(ip_src)
-            .add_path(ip_dst)
-            .add_path(std::to_string(port_src))
-            .add_path(std::to_string(port_dst))
-            .add_path(id_sfc)
-            .add_path(
-                prt == TCP ? "tcp" : "udp"
-                )
-            .add_path(endpoints[0].get_ip())
-            .add_path(endpoints[0].get_socket_id());
-
-    return query_builder.build();
 }
 // End Query
 
 // Query::Builder
+db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_item_id(const std::string& item_id) {
+    this->item_id = item_id;
+    return *this;
+}
 db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_ip_src(const std::string& ip_src) {
     this->ip_src = ip_src;
     return *this;
@@ -409,7 +413,8 @@ db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_endpoint(const End
     return *this;
 }
 db::DBQuery::Query db::DBQuery::Query::Builder::build() const {
-    return Query(ip_src,
+    return Query(item_id,
+                 ip_src,
                  ip_dst,
                  port_src,
                  port_dst,
