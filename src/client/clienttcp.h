@@ -27,7 +27,9 @@ private:
 
 public:
     void connect_to_server(char* dst, uint16_t port);
-    void send_and_receive(unsigned char* message, size_t message_len);
+    void send_and_receive(unsigned char* message, size_t message_len,
+                          unsigned char* received, ssize_t received_len);
+    fd_type access_to_socket() const;
     void close_connection();
 };
 

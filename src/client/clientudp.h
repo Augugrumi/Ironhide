@@ -25,6 +25,8 @@ class ClientUDP {
 public:
     void send_and_wait_response(unsigned char * message, size_t message_len,
                                 char* dst, uint16_t port);
+    fd_type send_only(unsigned char * message, size_t message_len,
+                      char* dst, uint16_t port);
 };
 
 } // namespace udp

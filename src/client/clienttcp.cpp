@@ -27,18 +27,23 @@ void client::tcp::ClientTCP::connect_to_server(char* dst, uint16_t port) {
     }
 }
 
-void client::tcp::ClientTCP::send_and_receive(unsigned char *message,
-                                              size_t message_len) {
-    ssize_t valread;
-    char buffer[BUFFER_SIZE] = {0};
+void client::tcp::ClientTCP::send_and_receive(unsigned char* message,
+                                              size_t message_len,
+                                              unsigned char* received,
+                                              ssize_t received_len) {
+    received = new unsigned char[BUFFER_SIZE];
 
     send(sock , message , message_len, 0);
     printf("Hello message sent\n");
-    valread = read( sock , buffer, BUFFER_SIZE);
-    if (valread < -1) {
+    received_len = read(sock , received, BUFFER_SIZE);
+    if (received_len < -1) {
         perror("error receiving data");
         exit(EXIT_FAILURE);
     }
+}
+
+client::fd_type client::tcp::ClientTCP::access_to_socket() const {
+    return sock;
 }
 
 void client::tcp::ClientTCP::close_connection() {
