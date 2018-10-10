@@ -14,7 +14,10 @@ db::utils::URLBuilder db::utils::URLBuilder::set_address(const Address& address)
 
 db::utils::URLBuilder db::utils::URLBuilder::add_path(const char* path) {
     std::string to_add;
-    if (paths.size() != 0 && path[0] != *Address::PATH_SEPARATOR) {
+    if (paths.size() != 0 &&
+            // Last character of the last element of the vector
+            paths[paths.size() - 1][paths[paths.size() - 1].size() - 1] != *Address::PATH_SEPARATOR   &&
+            path[0] != *Address::PATH_SEPARATOR) {
         to_add.append(Address::PATH_SEPARATOR);
     }
     to_add.append(path);
