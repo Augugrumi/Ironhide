@@ -96,7 +96,9 @@ std::string db::DBQuery::create_entry(const char *ip_src, const char *ip_dst,
                   &errors);
 
 
-    return response[reply::CONTENT]["id"].toStyledString();
+    std::string to_return = response[reply::CONTENT]["id"].toStyledString();
+    // This removes the double quotes
+    return to_return.substr(1, to_return.size() - 3);
 }
 
 bool db::DBQuery::update_endpoint(const char* ip_src, const char* ip_dst,
