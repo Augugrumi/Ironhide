@@ -10,14 +10,12 @@
 
 namespace classifier {
 
-// TODO think about how to classify results
 enum pkt_type {DEFAULT, TCP, UDP};
 
 class Classifier {
 public:
     class Mapper;
 private:
-    // TODO change map type
     // TODO request sfcs in order to popolate the map
     std::map<Mapper, char*> sfc_map;
 public:

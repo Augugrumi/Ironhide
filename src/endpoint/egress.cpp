@@ -13,7 +13,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
                 utils::PacketUtils::int_to_ip(headers.first.daddr).c_str()),
             headers.second.dest);
     ssize_t received_len;
-    unsigned char * buffer = new unsigned char[BUFFER_SIZE];
+    auto buffer = new unsigned char[BUFFER_SIZE];
     struct sockaddr_in server;
     server.sin_family      = AF_INET;
     server.sin_port        = headers.second.dest;
@@ -56,25 +56,30 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
     free(pkt);
     free(buffer);
 
-    // TODO think whe closing socket
+    // TODO think when closing socket
 }
 
 
 void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
-                                                  size_t pkt_len) {
+                                                  size_t pkt_len,
+                                                  const ConnectionEntry& ce,
+                                                  socket_fd socket) {
     auto headers = utils::PacketUtils::retrieve_ip_tcp_header(pkt + SFCHDR_LEN);
 
-    client::tcp::ClientTCP client;
-    client.connect_to_server(
-            const_cast<char*>(
-                    utils::PacketUtils::int_to_ip(headers.first.daddr).c_str()),
-            headers.second.dest);
+    if (socket == -1) {
+        client::tcp::ClientTCP client;
+        client.connect_to_server(
+                const_cast<char*>(
+                        utils::PacketUtils::int_to_ip(headers.first.daddr).c_str()),
+                headers.second.dest);
 
-    client::fd_type socket = client.access_to_socket();
+        socket = client.access_to_socket();
+        update_entry(ce, socket, db::endpoint_type::EGRESS_T);
+    }
     send(socket, pkt, pkt_len, 0);
 
     ssize_t received_len;
-    unsigned char * buffer = new unsigned char[BUFFER_SIZE];
+    auto buffer = new unsigned char[BUFFER_SIZE];
     char* sfcid;
     char* next_ip;
     uint16_t next_port;
@@ -130,26 +135,32 @@ void endpoint::Egress::manage_pkt_from_chain(void * mngmnt_args) {
            reinterpret_cast<struct sockaddr*>(&args->client_address),
            sizeof(args->client_address));
 
-
-    // TODO check if TCP or UDP
     sfc_header flh = utils::sfc_header::SFCUtilities::retrieve_header(
             (unsigned char*)args->pkt);
 
     auto headers =
             utils::PacketUtils::retrieve_ip_udp_header(
                     (unsigned char*)(args->pkt + SFCHDR_LEN));
-    // TODO change with update entry
-    add_entry(ConnectionEntry(
-            utils::PacketUtils::int_to_ip(headers.first.saddr),
-            utils::PacketUtils::int_to_ip(headers.first.daddr),
-            headers.second.source, headers.second.dest,
-            std::to_string(flh.p_id)),
-              args->socket_fd,
-              Protocol::UDP); // TODO change based on protocol
+    // TODO think something more extensible to support more protocols
+    // '6' is the code for TCP '17' for UDP
+    db::protocol_type conn_type = (headers.first.protocol == 6?
+                                        db::protocol_type::TCP :
+                                        db::protocol_type::UDP);
 
-    if (true) {
-        std::function<void ()> f = [this, &args]() {
-            manage_exiting_tcp_packets((unsigned char*)args->pkt, args->pkt_len);
+    ConnectionEntry ce(utils::PacketUtils::int_to_ip(headers.first.saddr),
+                       utils::PacketUtils::int_to_ip(headers.first.daddr),
+                       headers.second.source, headers.second.dest,
+                       std::to_string(flh.p_id));
+
+    args->socket_fd = retrieve_connection(ce);
+    if (args->socket_fd == -1) {
+        add_entry(ce, args->socket_fd, db::endpoint_type::EGRESS_T, conn_type);
+    }
+
+    if (conn_type == db::protocol_type::TCP) {
+        std::function<void ()> f = [this, &args, &ce]() {
+            manage_exiting_tcp_packets((unsigned char*)args->pkt, args->pkt_len,
+                                       ce, args->socket_fd);
         };
         ASYNC_TASK(f);
     } else {

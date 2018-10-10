@@ -14,46 +14,50 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
     unsigned char pkt[BUFFER_SIZE];
     char* sfcid, * prev_sfcid = const_cast<char*>("");
     bool first_pkt = true;
+    bool db_error = false;
     char* next_ip;
     uint16_t next_port;
     unsigned char* formatted_pkt;
-    while((read_size = recv(new_socket_fd, pkt, BUFFER_SIZE, 0)) > 0) {
+    while((read_size = recv(new_socket_fd, pkt, BUFFER_SIZE, 0)) > 0 && !db_error) {
         sfcid = Endpoint::classifier_.classify_pkt((unsigned char*) pkt, read_size);
 
         if (first_pkt || (strcmp(sfcid, prev_sfcid) != 0)) {
             auto headers =
                     utils::PacketUtils::retrieve_ip_tcp_header((unsigned char*)pkt);
+            try {
+                add_entry(ConnectionEntry(
+                                utils::PacketUtils::int_to_ip(headers.first.saddr),
+                                utils::PacketUtils::int_to_ip(headers.first.daddr),
+                                headers.second.source, headers.second.dest, sfcid),
+                          new_socket_fd,
+                          db::endpoint_type::INGRESS_T,
+                          db::protocol_type::TCP);
 
-            add_entry(ConnectionEntry(
-                            utils::PacketUtils::int_to_ip(headers.first.saddr),
-                            utils::PacketUtils::int_to_ip(headers.first.daddr),
-                            headers.second.source, headers.second.dest, sfcid),
-                      new_socket_fd,
-                      Protocol::TCP);
+                // TODO check how to set ttl
+                sfc_header flh =
+                        utils::sfc_header::SFCUtilities::create_header(
+                                atoi(sfcid), 0,const_cast<char*>(
+                                        utils::PacketUtils::int_to_ip(
+                                                headers.first.saddr).c_str()),
+                                headers.second.source,const_cast<char*>(
+                                        utils::PacketUtils::int_to_ip(
+                                                headers.first.daddr).c_str()),
+                                headers.second.dest, DEFAULT_TTL, 0);
+                // TODO set next_ip and next_port with call to roulette
+                utils::sfc_header::SFCUtilities::prepend_header(pkt,read_size,
+                                                                flh, formatted_pkt);
+                client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
+                                                                read_size + SFCHDR_LEN,
+                                                                next_ip, next_port);
 
+                prev_sfcid = sfcid;
+                first_pkt = false;
+            } catch(db::exceptions::ios_base::failure& e) {
+                perror(e.what());
+                db_error = true;
+            }
 
-            // TODO check how to set ttl
-            sfc_header flh =
-                    utils::sfc_header::SFCUtilities::create_header(
-                            atoi(sfcid), 0,const_cast<char*>(
-                                    utils::PacketUtils::int_to_ip(
-                                            headers.first.saddr).c_str()),
-                            headers.second.source,const_cast<char*>(
-                                    utils::PacketUtils::int_to_ip(
-                                            headers.first.daddr).c_str()),
-                            headers.second.dest, DEFAULT_TTL, 0);
-            // TODO set next_ip and next_port with call to roulette
-            utils::sfc_header::SFCUtilities::prepend_header(pkt,read_size,
-                                                            flh, formatted_pkt);
-            client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
-                                                            read_size + SFCHDR_LEN,
-                                                            next_ip, next_port);
-
-            prev_sfcid = sfcid;
-            first_pkt = false;
         }
-
-        //TODO retrieve next hop from db
     }
 
     if(read_size == 0) {
@@ -66,7 +70,8 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
 
     free(args);
 
-    //close(new_socket_fd);
+    if (db_error)
+        close(new_socket_fd);
 }
 
 
@@ -91,11 +96,12 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
             utils::PacketUtils::retrieve_ip_udp_header(
                     (unsigned char*)args->pkt);
     add_entry(ConnectionEntry(
-                utils::PacketUtils::int_to_ip(headers.first.saddr),
-                utils::PacketUtils::int_to_ip(headers.first.daddr),
-                headers.second.source, headers.second.dest, sfcid),
-                   args->socket_fd,
-                   Protocol::UDP);
+                    utils::PacketUtils::int_to_ip(headers.first.saddr),
+                    utils::PacketUtils::int_to_ip(headers.first.daddr),
+                    headers.second.source, headers.second.dest, sfcid),
+               args->socket_fd,
+               db::endpoint_type::INGRESS_T,
+               db::protocol_type::UDP);
 
     // TODO check how to set ttl
     sfc_header flh =
@@ -107,6 +113,7 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
                             headers.first.daddr).c_str()),
                     headers.second.dest, DEFAULT_TTL, 0);
 
+    // TODO set next_ip and next_port with call to roulette
     char* next_ip;
     uint16_t next_port;
     unsigned char* formatted_pkt;
