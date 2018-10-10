@@ -21,7 +21,9 @@ add_executable(${PROJECT_NAME}
         "endpoint/utils/sfcfixedlengthheader.cpp"
         "endpoint/utils/sfcutilities.cpp"
         "utils/log.cpp"
-        "db/utils/urlbuilder.cpp")
+        "db/utils/urlbuilder.cpp"
+        "db/exceptions/endpoint_not_found.cpp"
+        "db/exceptions/query_ambiguous.cpp")
 
 # Set library version
 set_target_properties(

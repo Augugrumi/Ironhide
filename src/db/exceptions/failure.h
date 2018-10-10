@@ -4,6 +4,7 @@
 #include <exception>
 #include <string>
 
+namespace db {
 namespace exceptions {
 namespace ios_base {
 class failure : public std::exception {
@@ -13,10 +14,11 @@ public:
 
     const char* what() const noexcept override;
 private:
-    const std::string& err;
+    const std::string err;
 };
 } // namespace ios_base
 } // namespace exception
+} // namespace db
 
 
 #endif // FAILURE_H
