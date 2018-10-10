@@ -22,11 +22,11 @@ uint32_t SFCFixedLengthHeader::get_service_index() const {
 }
 
 std::string SFCFixedLengthHeader::get_source_ip_address() const {
-    return SFCUtilities::int_to_ip(header.source_address);
+    return PacketUtils::int_to_ip(header.source_address);
 }
 
 std::string SFCFixedLengthHeader::get_destination_ip_address() const {
-    return SFCUtilities::int_to_ip(header.destination_address);
+    return PacketUtils::int_to_ip(header.destination_address);
 }
 
 uint16_t SFCFixedLengthHeader::get_source_port() const {

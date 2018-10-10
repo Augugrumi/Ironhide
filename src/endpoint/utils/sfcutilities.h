@@ -10,6 +10,7 @@
 #include <string.h>
 #include <string>
 
+#include "packetutils.h"
 #include "sfcheaderstruct.h"
 
 namespace utils {
@@ -17,10 +18,6 @@ namespace utils {
         class SFCUtilities {
         public:
             static const uint8_t HEADER_SIZE;
-
-            static uint32_t ip_to_int(const char *ip_string);
-
-            static std::string int_to_ip(uint32_t ip_int);
 
             static struct sfc_header create_header(
                     uint32_t service_path_id, uint32_t service_index,

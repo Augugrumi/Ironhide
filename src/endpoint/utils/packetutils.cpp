@@ -11,6 +11,10 @@ std::string utils::PacketUtils::int_to_ip(uint32_t ip_int) {
     return ip_string;
 }
 
+uint32_t utils::PacketUtils::ip_to_int(const char *ip_string) {
+    return inet_addr(ip_string);
+}
+
 uint16_t utils::PacketUtils::retrieve_port(uint16_t port) {
     return htons(port);
 }

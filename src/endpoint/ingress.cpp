@@ -140,8 +140,8 @@ void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
                                                       payload);
 
     endpoint::socket_fd sock = retrieve_connection(ConnectionEntry(
-            utils::sfc_header::SFCUtilities::int_to_ip(header.source_address),
-            utils::sfc_header::SFCUtilities::int_to_ip(header.destination_address),
+            utils::PacketUtils::int_to_ip(header.source_address),
+            utils::PacketUtils::int_to_ip(header.destination_address),
             header.source_port, header.destination_port,
             std::to_string(header.p_id)));
 

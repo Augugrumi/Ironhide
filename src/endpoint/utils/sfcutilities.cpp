@@ -10,18 +10,6 @@ namespace sfc_header {
 
 const uint8_t SFCUtilities::HEADER_SIZE = 24;
 
-uint32_t SFCUtilities::ip_to_int(const char *ip_string) {
-    return inet_addr(ip_string);
-}
-
-std::string SFCUtilities::int_to_ip(uint32_t ip_int) {
-    struct in_addr addr;
-    addr.s_addr = ip_int;
-    char* buf = inet_ntoa(addr);// conversion BigEndian/LittleEndian?
-    std::string ip_string(buf);
-    return ip_string;
-}
-
 struct sfc_header SFCUtilities::create_header(
         uint32_t service_path_id, uint32_t service_index,
         char *source_address, uint16_t source_port,
@@ -37,9 +25,9 @@ struct sfc_header SFCUtilities::create_header(
     header.prot = 0x1;
     header.p_id = service_path_id;
     header.si = service_index;
-    header.source_address = ip_to_int(source_address);
+    header.source_address = PacketUtils::ip_to_int(source_address);
     header.source_port = source_port;
-    header.destination_address = ip_to_int(dest_address);
+    header.destination_address = PacketUtils::ip_to_int(dest_address);
     header.destination_port = dest_port;
     header.direction_flag = direction;
 

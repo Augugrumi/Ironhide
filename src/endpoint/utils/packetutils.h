@@ -23,6 +23,7 @@ private:
     PacketUtils() = default;
 public:
     static std::string int_to_ip(uint32_t ip_int);
+    static uint32_t ip_to_int(const char *ip_string);
     static uint16_t retrieve_port(uint16_t port);
     static header_ip_tcp retrieve_ip_tcp_header(unsigned char*);
     static header_ip_udp retrieve_ip_udp_header(unsigned char*);
