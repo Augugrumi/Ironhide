@@ -14,6 +14,9 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
     unsigned char pkt[BUFFER_SIZE];
     char* sfcid, * prev_sfcid = const_cast<char*>("");
     bool first_pkt = true;
+    char* next_ip;
+    uint16_t next_port;
+    unsigned char* formatted_pkt;
     while((read_size = recv(new_socket_fd, pkt, BUFFER_SIZE, 0)) > 0) {
         sfcid = Endpoint::classifier_.classify_pkt((unsigned char*) pkt, read_size);
 
@@ -39,18 +42,18 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
                                     utils::PacketUtils::int_to_ip(
                                             headers.first.daddr).c_str()),
                             headers.second.dest, DEFAULT_TTL, 0);
-            char* next_ip;
-            uint16_t next_port;
-            client::udp::ClientUDP().send_and_wait_response(pkt, read_size, next_ip, next_port);
+            // TODO set next_ip and next_port with call to roulette
+            utils::sfc_header::SFCUtilities::prepend_header(pkt,read_size,
+                                                            flh, formatted_pkt);
+            client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
+                                                            read_size + SFCHDR_LEN,
+                                                            next_ip, next_port);
 
             prev_sfcid = sfcid;
             first_pkt = false;
         }
 
         //TODO retrieve next hop from db
-
-        //Send the message in to the vnf
-        //write(client_sock , client_message , strlen(client_message));
     }
 
     if(read_size == 0) {
@@ -107,13 +110,12 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
     char* next_ip;
     uint16_t next_port;
     unsigned char* formatted_pkt;
-    unsigned char* p = (unsigned char*)args->pkt;
-    utils::sfc_header::SFCUtilities::prepend_header(p, args->pkt_len,
+    utils::sfc_header::SFCUtilities::prepend_header((unsigned char*)args->pkt,
+                                                    args->pkt_len,
                                                     flh, formatted_pkt);
     client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
-            args->pkt_len + SFCHDR_LEN, next_ip, next_port);
-
-
+                                                    args->pkt_len + SFCHDR_LEN,
+                                                    next_ip, next_port);
     delete(args->pkt);
     free(args);
 }

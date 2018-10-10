@@ -34,7 +34,7 @@ struct sfc_header SFCUtilities::create_header(
     return header;
 }
 
-void SFCUtilities::prepend_header(unsigned char*& no_header_pkt, size_t pkt_size,
+void SFCUtilities::prepend_header(unsigned char* no_header_pkt, size_t pkt_size,
           struct sfc_header header, unsigned char*& pkt_w_header) {
     pkt_w_header = new unsigned char[HEADER_SIZE + pkt_size];
     memcpy((char*)pkt_w_header, &header, HEADER_SIZE);
