@@ -111,7 +111,7 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
     utils::sfc_header::SFCUtilities::prepend_header(p, args->pkt_len,
                                                     flh, formatted_pkt);
     client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
-            args->pkt_len + 16, next_ip, next_port);
+            args->pkt_len + SFCHDR_LEN, next_ip, next_port);
 
 
     delete(args->pkt);

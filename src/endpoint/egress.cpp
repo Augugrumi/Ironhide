@@ -6,8 +6,7 @@
 
 void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
                                                   size_t pkt_len) {
-    // + 16 not considering sfc header
-    auto headers = utils::PacketUtils::retrieve_ip_tcp_header(pkt + 16);
+    auto headers = utils::PacketUtils::retrieve_ip_tcp_header(pkt + SFCHDR_LEN);
     client::udp::ClientUDP client;
     client::fd_type socket = client.send_only(
             pkt, pkt_len, const_cast<char*>(
@@ -49,7 +48,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
             utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
                                                             flh, formatted_pkt);
             client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
-                                                            pkt_len + 16,
+                                                            pkt_len + SFCHDR_LEN,
                                                             next_ip, next_port);
         }
     } while(received_len > 0);
@@ -63,8 +62,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
 
 void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
                                                   size_t pkt_len) {
-    // + 16 not considering sfc header
-    auto headers = utils::PacketUtils::retrieve_ip_tcp_header(pkt + 16);
+    auto headers = utils::PacketUtils::retrieve_ip_tcp_header(pkt + SFCHDR_LEN);
 
     client::tcp::ClientTCP client;
     client.connect_to_server(
@@ -102,7 +100,7 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
             utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
                                                             flh, formatted_pkt);
             client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
-                                                            pkt_len + 16,
+                                                            pkt_len + SFCHDR_LEN,
                                                             next_ip, next_port);
         }
 
@@ -139,7 +137,7 @@ void endpoint::Egress::manage_pkt_from_chain(void * mngmnt_args) {
 
     auto headers =
             utils::PacketUtils::retrieve_ip_udp_header(
-                    (unsigned char*)(args->pkt + 16));
+                    (unsigned char*)(args->pkt + SFCHDR_LEN));
     // TODO change with update entry
     add_entry(ConnectionEntry(
             utils::PacketUtils::int_to_ip(headers.first.saddr),
