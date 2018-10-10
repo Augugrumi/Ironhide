@@ -81,6 +81,9 @@ bool db::DBQuery::update_endpoint(const Query& query, const Endpoint& to_add) {
             .build();
     std::string json_data = to_add.to_json();
 
+    LOG(ldebug, "URL to send data: " + req_addr);
+    LOG(ldebug, "Data to send: " + json_data);
+
     header = curl_slist_append(header, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
     curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
