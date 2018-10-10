@@ -39,3 +39,9 @@ utils::header_ip_udp utils::PacketUtils::retrieve_ip_udp_header(
     res.second = h_udp;
     return res;
 }
+
+utils::ip_header_t utils::PacketUtils::retrieve_ip_header(unsigned char * pkt) {
+    struct ip_header_t h_ip;
+    memcpy(&h_ip, pkt, sizeof(ip_header_t));
+    return h_ip;
+}

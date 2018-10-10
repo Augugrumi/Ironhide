@@ -26,6 +26,7 @@ public:
     static uint16_t retrieve_port(uint16_t port);
     static header_ip_tcp retrieve_ip_tcp_header(unsigned char*);
     static header_ip_udp retrieve_ip_udp_header(unsigned char*);
+    static ip_header_t retrieve_ip_header(unsigned char *);
 };
 
 } // namespace utils
