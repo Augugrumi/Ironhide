@@ -81,6 +81,9 @@ bool db::DBQuery::update_endpoint(const Query& query, const Endpoint& to_add) {
             .build();
     std::string json_data = to_add.to_json();
 
+    LOG(ldebug, "URL to send data: " + req_addr);
+    LOG(ldebug, "Data to send: " + json_data);
+
     header = curl_slist_append(header, "Content-Type: application/json");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
     curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
@@ -252,7 +255,7 @@ std::string db::DBQuery::Endpoint::to_json() const {
         json[query::INGRESS_IP] = ip;
         json[query::SOCK_INGRESS] = socket_id;
     } else {
-        json[query::EGRESS] = ip;
+        json[query::EGRESS_IP] = ip;
         json[query::SOCK_EGRESS] = socket_id;
     }
 
@@ -370,31 +373,31 @@ std::string db::DBQuery::Query::to_url() const {
 // End Query
 
 // Query::Builder
-db::DBQuery::Query::Builder db::DBQuery::Query::Builder::set_ip_src(const std::string& ip_src) {
+db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_ip_src(const std::string& ip_src) {
     this->ip_src = ip_src;
     return *this;
 }
-db::DBQuery::Query::Builder db::DBQuery::Query::Builder::set_ip_dst(const std::string& ip_dst) {
+db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_ip_dst(const std::string& ip_dst) {
     this->ip_dst = ip_dst;
     return *this;
 }
-db::DBQuery::Query::Builder db::DBQuery::Query::Builder::set_port_src(uint16_t port_src) {
+db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_port_src(uint16_t port_src) {
     this->port_src = port_src;
     return *this;
 }
-db::DBQuery::Query::Builder db::DBQuery::Query::Builder::set_port_dst(uint16_t port_dst) {
+db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_port_dst(uint16_t port_dst) {
     this->port_dst = port_dst;
     return *this;
 }
-db::DBQuery::Query::Builder db::DBQuery::Query::Builder::set_protocol(db::protocol_type prt) {
+db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_protocol(db::protocol_type prt) {
     this->prt = prt;
     return *this;
 }
-db::DBQuery::Query::Builder db::DBQuery::Query::Builder::set_id_sfc(const std::string& id_sfc) {
+db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_id_sfc(const std::string& id_sfc) {
     this->id_sfc = id_sfc;
     return *this;
 }
-db::DBQuery::Query::Builder db::DBQuery::Query::Builder::set_endpoint(const Endpoint& endpoint) {
+db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_endpoint(const Endpoint& endpoint) {
     for (auto it = endpoints.begin(); it != endpoints.end(); it++) {
         if (it->get_endpoint_typology() == endpoint.get_endpoint_typology()) {
             endpoints.erase(it);

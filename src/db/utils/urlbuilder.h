@@ -13,10 +13,10 @@ class URLBuilder
 public:
     URLBuilder();
 
-    URLBuilder add_path(const char*);
-    URLBuilder add_path(const std::string&);
+    URLBuilder& add_path(const char*);
+    URLBuilder& add_path(const std::string&);
 
-    URLBuilder set_address(const Address&);
+    URLBuilder& set_address(const Address&);
 
     std::string build() const;
 private:
