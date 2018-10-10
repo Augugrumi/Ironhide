@@ -118,13 +118,13 @@ public:
             std::vector<Endpoint> endpoints;
         public:
             Builder() = default;
-            Builder set_ip_src(const std::string&);
-            Builder set_ip_dst(const std::string&);
-            Builder set_port_src(uint16_t);
-            Builder set_port_dst(uint16_t);
-            Builder set_protocol(protocol_type);
-            Builder set_id_sfc(const std::string&);
-            Builder set_endpoint(const Endpoint&);
+            Builder& set_ip_src(const std::string&);
+            Builder& set_ip_dst(const std::string&);
+            Builder& set_port_src(uint16_t);
+            Builder& set_port_dst(uint16_t);
+            Builder& set_protocol(protocol_type);
+            Builder& set_id_sfc(const std::string&);
+            Builder& set_endpoint(const Endpoint&);
             Query build() const;
         };
 
