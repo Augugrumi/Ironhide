@@ -13,7 +13,7 @@
 #include "endpoint.h"
 #include "servertcp.h"
 #include "serverudp.h"
-#include "utils/packetutils.h"
+#include "packetutils.h"
 #include "utils/sfcheaderstruct.h"
 #include "utils/sfcutilities.h"
 #include "utils/sfcfixedlengthheader.h"

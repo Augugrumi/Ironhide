@@ -4,7 +4,7 @@
 
 #include <linux/ip.h>
 
-#include "utils/packetutils.h"
+#include "packetutils.h"
 #include "classifier.h"
 
 char* classifier::Classifier::classify_pkt(unsigned char *pkt,
