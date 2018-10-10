@@ -22,8 +22,8 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
                     utils::PacketUtils::retrieve_ip_tcp_header((unsigned char*)pkt);
 
             add_entry(ConnectionEntry(
-                            utils::PacketUtils::int_to_ip(headers.first.src_addr),
-                            utils::PacketUtils::int_to_ip(headers.first.dst_addr),
+                            utils::PacketUtils::int_to_ip(headers.first.saddr),
+                            utils::PacketUtils::int_to_ip(headers.first.daddr),
                             headers.second.source, headers.second.dest, sfcid),
                       new_socket_fd,
                       Protocol::TCP);
@@ -34,10 +34,10 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
                     utils::sfc_header::SFCUtilities::create_header(
                             atoi(sfcid), 0,const_cast<char*>(
                                     utils::PacketUtils::int_to_ip(
-                                            headers.first.src_addr).c_str()),
+                                            headers.first.saddr).c_str()),
                             headers.second.source,const_cast<char*>(
                                     utils::PacketUtils::int_to_ip(
-                                            headers.first.dst_addr).c_str()),
+                                            headers.first.daddr).c_str()),
                             headers.second.dest, 1024, 0);
             char* next_ip;
             uint16_t next_port;
@@ -88,8 +88,8 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
             utils::PacketUtils::retrieve_ip_udp_header(
                     (unsigned char*)args->pkt);
     add_entry(ConnectionEntry(
-                utils::PacketUtils::int_to_ip(headers.first.src_addr),
-                utils::PacketUtils::int_to_ip(headers.first.dst_addr),
+                utils::PacketUtils::int_to_ip(headers.first.saddr),
+                utils::PacketUtils::int_to_ip(headers.first.daddr),
                 headers.second.source, headers.second.dest, sfcid),
                    args->socket_fd,
                    Protocol::UDP);
@@ -98,10 +98,10 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
     sfc_header flh =
             utils::sfc_header::SFCUtilities::create_header(atoi(sfcid), 0,
                     const_cast<char*>(utils::PacketUtils::int_to_ip(
-                            headers.first.src_addr).c_str()),
+                            headers.first.saddr).c_str()),
                     headers.second.source,
                     const_cast<char*>(utils::PacketUtils::int_to_ip(
-                            headers.first.dst_addr).c_str()),
+                            headers.first.daddr).c_str()),
                     headers.second.dest, 1024, 0);
 
     char* next_ip;

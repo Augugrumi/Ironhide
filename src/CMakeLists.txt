@@ -16,7 +16,6 @@ add_executable(${PROJECT_NAME}
         "db/exceptions/failure.cpp"
         "classifier/classifier.cpp"
         "endpoint/connectionentry.cpp"
-        "endpoint/utils/ipheader.h"
         "endpoint/utils/packetutils.cpp"
         "endpoint/utils/sfcheaderstruct.h"
         "endpoint/utils/sfcfixedlengthheader.cpp"

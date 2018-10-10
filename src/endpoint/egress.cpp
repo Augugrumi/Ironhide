@@ -11,14 +11,14 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
     client::udp::ClientUDP client;
     client::fd_type socket = client.send_only(
             pkt, pkt_len, const_cast<char*>(
-                utils::PacketUtils::int_to_ip(headers.first.dst_addr).c_str()),
+                utils::PacketUtils::int_to_ip(headers.first.daddr).c_str()),
             headers.second.dest);
     ssize_t received_len;
     unsigned char * buffer = new unsigned char[BUFFER_SIZE];
     struct sockaddr_in server;
     server.sin_family      = AF_INET;
     server.sin_port        = headers.second.dest;
-    server.sin_addr.s_addr = headers.first.dst_addr;
+    server.sin_addr.s_addr = headers.first.daddr;
     socklen_t server_addr_len = sizeof(server);
     char* sfcid;
     char* next_ip;
@@ -40,10 +40,10 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
                     utils::sfc_header::SFCUtilities::create_header(
                             atoi(sfcid), 0,const_cast<char*>(
                                     utils::PacketUtils::int_to_ip(
-                                            headers.first.src_addr).c_str()),
+                                            headers.first.saddr).c_str()),
                             headers.second.source, const_cast<char*>(
                                     utils::PacketUtils::int_to_ip(
-                                            headers.first.dst_addr).c_str()),
+                                            headers.first.daddr).c_str()),
                             headers.second.dest, 1024, 0);
             // TODO set next_ip and next_port with call to roulette
             utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
@@ -69,7 +69,7 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
     client::tcp::ClientTCP client;
     client.connect_to_server(
             const_cast<char*>(
-                    utils::PacketUtils::int_to_ip(headers.first.dst_addr).c_str()),
+                    utils::PacketUtils::int_to_ip(headers.first.daddr).c_str()),
             headers.second.dest);
 
     client::fd_type socket = client.access_to_socket();
@@ -93,10 +93,10 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
                     utils::sfc_header::SFCUtilities::create_header(
                             atoi(sfcid), 0,const_cast<char*>(
                                     utils::PacketUtils::int_to_ip(
-                                            headers.first.src_addr).c_str()),
+                                            headers.first.saddr).c_str()),
                             headers.second.source, const_cast<char*>(
                                     utils::PacketUtils::int_to_ip(
-                                            headers.first.dst_addr).c_str()),
+                                            headers.first.daddr).c_str()),
                             headers.second.dest, 1024, 0);
             // TODO set next_ip and next_port with call to roulette
             utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
@@ -142,8 +142,8 @@ void endpoint::Egress::manage_pkt_from_chain(void * mngmnt_args) {
                     (unsigned char*)(args->pkt + 16));
     // TODO change with update entry
     add_entry(ConnectionEntry(
-            utils::PacketUtils::int_to_ip(headers.first.src_addr),
-            utils::PacketUtils::int_to_ip(headers.first.dst_addr),
+            utils::PacketUtils::int_to_ip(headers.first.saddr),
+            utils::PacketUtils::int_to_ip(headers.first.daddr),
             headers.second.source, headers.second.dest,
             std::to_string(flh.p_id)),
               args->socket_fd,

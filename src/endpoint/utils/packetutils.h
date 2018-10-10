@@ -8,15 +8,15 @@
 #include <string>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <cstring>
 #include <linux/tcp.h>
 #include <linux/udp.h>
-
-#include "ipheader.h"
+#include <linux/ip.h>
 
 namespace utils {
 
-typedef std::pair<struct utils::ip_header_t, tcphdr> header_ip_tcp;
-typedef std::pair<struct utils::ip_header_t, udphdr> header_ip_udp;
+typedef std::pair<struct iphdr, tcphdr> header_ip_tcp;
+typedef std::pair<struct iphdr, udphdr> header_ip_udp;
 
 class PacketUtils {
 private:
@@ -26,7 +26,7 @@ public:
     static uint16_t retrieve_port(uint16_t port);
     static header_ip_tcp retrieve_ip_tcp_header(unsigned char*);
     static header_ip_udp retrieve_ip_udp_header(unsigned char*);
-    static ip_header_t retrieve_ip_header(unsigned char *);
+    static iphdr retrieve_ip_header(unsigned char *);
 };
 
 } // namespace utils
