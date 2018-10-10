@@ -31,10 +31,6 @@ void
 endpoint::Endpoint::update_entry(endpoint::ConnectionEntry ce,
                                  endpoint::socket_fd fd,
                                  db::endpoint_type endpoint) {
-    auto it = connection_map.find(ce);
-    if (it == connection_map.end()) {
-        // TODO retrieve from remote for the ID
-    }
     roulette_.update_endpoint(
             db::DBQuery::Query::Builder()
                     .set_id_sfc(ce.get_sfcid())
@@ -53,7 +49,7 @@ void endpoint::Endpoint::delete_entry(endpoint::ConnectionEntry ce) {
     auto it = connection_map.find(ce);
     if (it != connection_map.end()) {
         connection_map.erase(ce);
-        roulette_.delete_endpoint(map_to_remote[ce].c_str());
+        roulette_.delete_entry(map_to_remote[ce].c_str());
         map_to_remote.erase(ce);
     }
 }
@@ -61,8 +57,9 @@ void endpoint::Endpoint::delete_entry(endpoint::ConnectionEntry ce) {
 endpoint::socket_fd endpoint::Endpoint::retrieve_connection(
         endpoint::ConnectionEntry ce) {
     auto it = connection_map.find(ce);
-    if (it == connection_map.end())
+    if (it == connection_map.end()) {
         return -1;
+    }
     return it->second;
 }
 
