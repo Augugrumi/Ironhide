@@ -18,6 +18,7 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
     char* next_ip;
     uint16_t next_port;
     unsigned char* formatted_pkt;
+    unsigned long ttl;
     while((read_size = recv(new_socket_fd, pkt, BUFFER_SIZE, 0)) > 0 && !db_error) {
         sfcid = Endpoint::classifier_.classify_pkt((unsigned char*) pkt, read_size);
 
@@ -33,7 +34,13 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
                           db::endpoint_type::INGRESS_T,
                           db::protocol_type::TCP);
 
-                // TODO check how to set ttl
+                std::vector<db::utils::Address> path =
+                        roulette_.get_route_list(atoi(sfcid));
+                // +2 because of ingress & egress
+                ttl = path.size() + 2;
+                next_ip = const_cast<char*>(path[0].get_URL().c_str());
+                next_port = path[0].get_port();
+
                 sfc_header flh =
                         utils::sfc_header::SFCUtilities::create_header(
                                 atoi(sfcid), 0,const_cast<char*>(
@@ -42,8 +49,8 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
                                 headers.second.source,const_cast<char*>(
                                         utils::PacketUtils::int_to_ip(
                                                 headers.first.daddr).c_str()),
-                                headers.second.dest, DEFAULT_TTL, 0);
-                // TODO set next_ip and next_port with call to roulette
+                                headers.second.dest, ttl, 0);
+
                 utils::sfc_header::SFCUtilities::prepend_header(pkt,read_size,
                                                                 flh, formatted_pkt);
                 client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
@@ -103,7 +110,13 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
                db::endpoint_type::INGRESS_T,
                db::protocol_type::UDP);
 
-    // TODO check how to set ttl
+    std::vector<db::utils::Address> path =
+            roulette_.get_route_list(atoi(sfcid));
+    // +2 because of ingress & egress
+    unsigned long ttl = path.size() + 2;
+    char* next_ip = const_cast<char*>(path[0].get_URL().c_str());
+    uint16_t next_port = path[0].get_port();
+
     sfc_header flh =
             utils::sfc_header::SFCUtilities::create_header(atoi(sfcid), 0,
                     const_cast<char*>(utils::PacketUtils::int_to_ip(
@@ -111,11 +124,8 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
                     headers.second.source,
                     const_cast<char*>(utils::PacketUtils::int_to_ip(
                             headers.first.daddr).c_str()),
-                    headers.second.dest, DEFAULT_TTL, 0);
+                    headers.second.dest, ttl, 0);
 
-    // TODO set next_ip and next_port with call to roulette
-    char* next_ip;
-    uint16_t next_port;
     unsigned char* formatted_pkt;
     utils::sfc_header::SFCUtilities::prepend_header((unsigned char*)args->pkt,
                                                     args->pkt_len,
@@ -154,10 +164,18 @@ void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
             header.source_port, header.destination_port,
             std::to_string(header.p_id)));
 
-    // TODO check if TCP or UDP
+    auto headers =
+            utils::PacketUtils::retrieve_ip_udp_header(
+                    (unsigned char*)(args->pkt + SFCHDR_LEN));
+    // TODO think something more extensible to support more protocols
+    // '6' is the code for TCP '17' for UDP
+    db::protocol_type conn_type = (headers.first.protocol == 6?
+                                   db::protocol_type::TCP :
+                                   db::protocol_type::UDP);
+
     unsigned char resp_buff[BUFFER_SIZE];
     ssize_t resp_c;
-    if (false) {
+    if (conn_type == db::protocol_type::TCP) {
         send(sock , args->pkt, args->pkt_len, 0);
         resp_c = read( sock , resp_buff, BUFFER_SIZE);
         if (resp_c < -1) {

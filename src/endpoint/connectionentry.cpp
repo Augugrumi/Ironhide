@@ -10,7 +10,7 @@ endpoint::ConnectionEntry::ConnectionEntry(const std::string &ip_src,
                                            const uint16_t & port_dst,
                                            const std::string & sfcid)
         : ip_src_(ip_src), ip_dst_(ip_dst),
-          port_src_(port_src), port_dst_(port_dst){}
+          port_src_(port_src), port_dst_(port_dst), sfcid_(sfcid){}
 
 bool endpoint::ConnectionEntry::operator==(
         const endpoint::ConnectionEntry &ce) const {

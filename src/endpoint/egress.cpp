@@ -22,6 +22,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
     char* sfcid;
     char* next_ip;
     uint16_t next_port;
+    unsigned long ttl;
     unsigned char* formatted_pkt;
     do {
         received_len = recvfrom(socket,
@@ -34,7 +35,14 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
             exit(EXIT_FAILURE);
         } else if (received_len > 0) {
             sfcid = classifier_.classify_pkt(buffer, received_len);
-            // TODO check how to set ttl
+
+            std::vector<db::utils::Address> path =
+                    roulette_.get_route_list(atoi(sfcid));
+            // +2 because of ingress & egress
+            ttl = path.size() + 2;
+            next_ip = const_cast<char*>(path[0].get_URL().c_str());
+            next_port = path[0].get_port();
+
             sfc_header flh =
                     utils::sfc_header::SFCUtilities::create_header(
                             atoi(sfcid), 0,const_cast<char*>(
@@ -43,8 +51,8 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
                             headers.second.source, const_cast<char*>(
                                     utils::PacketUtils::int_to_ip(
                                             headers.first.daddr).c_str()),
-                            headers.second.dest, DEFAULT_TTL, 0);
-            // TODO set next_ip and next_port with call to roulette
+                            headers.second.dest, ttl, 0);
+
             utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
                                                             flh, formatted_pkt);
             client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
@@ -83,6 +91,7 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
     char* sfcid;
     char* next_ip;
     uint16_t next_port;
+    unsigned long ttl;
     unsigned char* formatted_pkt;
     do {
         received_len = read(socket, buffer, BUFFER_SIZE);
@@ -91,7 +100,14 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
             exit(EXIT_FAILURE);
         } else if (received_len > 0) {
             sfcid = classifier_.classify_pkt(buffer, received_len);
-            // TODO check how to set ttl
+
+            std::vector<db::utils::Address> path =
+                    roulette_.get_route_list(atoi(sfcid));
+            // +2 because of ingress & egress
+            ttl = path.size() + 2;
+            next_ip = const_cast<char*>(path[0].get_URL().c_str());
+            next_port = path[0].get_port();
+
             sfc_header flh =
                     utils::sfc_header::SFCUtilities::create_header(
                             atoi(sfcid), 0,const_cast<char*>(
@@ -100,8 +116,7 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
                             headers.second.source, const_cast<char*>(
                                     utils::PacketUtils::int_to_ip(
                                             headers.first.daddr).c_str()),
-                            headers.second.dest, DEFAULT_TTL, 0);
-            // TODO set next_ip and next_port with call to roulette
+                            headers.second.dest, ttl, 0);
             utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
                                                             flh, formatted_pkt);
             client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
@@ -119,10 +134,6 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
 }
 
 void endpoint::Egress::manage_pkt_from_chain(void * mngmnt_args) {
-
-    // TODO integrate clients form communication calling
-    // manage_exiting_udp_packets and manage_exiting_tcp_packets when needed
-
     auto args = (server::udp::udp_pkt_mngmnt_args *)mngmnt_args;
 
     std::cout << "bla" << std::endl;

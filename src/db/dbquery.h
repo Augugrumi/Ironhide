@@ -53,8 +53,6 @@ const char* const ROUTE_PREFIX = "routes/";
 enum endpoint_type{INGRESS_T, EGRESS_T};
 enum protocol_type{TCP, UDP};
 
-// TODO copy get next from astaire
-// TODO make requests to roulette really
 class DBQuery {
 private:
     const utils::Address roulette_addr;
@@ -148,8 +146,6 @@ public:
     bool update_endpoint(const Query&, const Endpoint&);
 
     std::vector<utils::Address> get_route_list(uint32_t);
-
-    // TODO get_next_route, get_chain_route
 };
 
 }
