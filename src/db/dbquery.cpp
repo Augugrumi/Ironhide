@@ -4,6 +4,14 @@
 
 #include "dbquery.h"
 
+// Static methods
+std::string db::DBQuery::sanitize(const std::string& to_sanitize) {
+    std::string res(to_sanitize);
+    std::replace(res.begin(), res.end(), '\0', ' ');
+    return res;
+}
+// End static methods
+
 // DBQuery
 db::DBQuery::DBQuery(const utils::Address& r_a) : roulette_addr(r_a) {
     curl_global_init(CURL_GLOBAL_ALL);
@@ -205,16 +213,21 @@ std::vector<db::utils::Address> db::DBQuery::get_route_list(uint32_t p_id) {
                       &response,
                       &errors);
 
+        Json::Value content = response[reply::CONTENT];
         Json::Value si_list = response[reply::CONTENT][query::SI];
 
         LOG(ltrace, "SI list size: " + std::to_string(si_list.size()));
-        for (Json::Value::ArrayIndex i = 0; i != response.size(); i++) {
+        /*for (Json::Value::ArrayIndex i = 0; i != response.size(); i++) {
             LOG(ltrace, response[i]["port"].asString());
+        }*/
+        for (const Json::Value& address : content[query::SI]) {
+            utils::Address to_add(address[query::ADDRESS].asString(),
+                    address[query::PORT].asUInt());
+            routes.push_back(to_add);
         }
-
         return routes;
     }
-
+    return std::vector<utils::Address>();
 }
 
 bool db::DBQuery::handle_req(const CURLcode& res, std::function<bool()> cb) {
@@ -287,10 +300,7 @@ std::string db::DBQuery::Endpoint::to_json() const {
         json[query::EGRESS_IP] = ip;
         json[query::SOCK_EGRESS] = socket_id;
     }
-
-    std::string res = json.toStyledString();
-    std::replace(res.begin(), res.end(), '\0', ' ');
-    return res;
+    return sanitize(json.toStyledString());
 }
 // End Endpoint
 
@@ -366,10 +376,7 @@ std::string db::DBQuery::Query::to_json() const {
         }
     }
 
-    std::string res = json_res.toStyledString();
-    std::replace(res.begin(), res.end(), '\0', ' ');
-    return res;
-    //return json_res.asString();
+    return sanitize(json_res.toStyledString());
 }
 
 std::string db::DBQuery::Query::to_url() const {

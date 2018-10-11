@@ -37,6 +37,8 @@ const char* const INGRESS = "ingress";
 const char* const EGRESS = "egress";
 
 const char* const SI = "si";
+const char* const ADDRESS = "url";
+const char* const PORT = "port";
 } // namespace query
 
 namespace reply {
@@ -61,6 +63,8 @@ private:
     static size_t curl_callback(void*, size_t, size_t, std::string*);
     bool is_op_ok(const std::string&);
     bool handle_req(const CURLcode&, std::function<bool()>);
+
+    static std::string sanitize(const std::string&);
 public:
     DBQuery(const std::string&, uint16_t port);
     DBQuery(const utils::Address&);
