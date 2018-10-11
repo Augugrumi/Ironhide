@@ -174,6 +174,49 @@ bool db::DBQuery::delete_entry(const char* id) {
                 std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
 }
 
+
+std::vector<db::utils::Address> db::DBQuery::get_route_list(uint32_t p_id) {
+    const std::string req_addr = utils::URLBuilder()
+            .set_address(roulette_addr)
+            .add_path(ROUTE_PREFIX)
+            .add_path(std::to_string(p_id))
+            .build();
+    std::vector<utils::Address> routes;
+    std::string req_data_res;
+
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
+
+    CURLcode res = curl_easy_perform(curl);
+    if (handle_req(
+                res,
+                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
+
+        LOG(ltrace, "after if");
+        Json::CharReaderBuilder builder;
+        std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+        Json::Value response;
+
+        std::string errors;
+        reader->parse(req_data_res.c_str(),
+                      req_data_res.c_str() + req_data_res.size(),
+                      &response,
+                      &errors);
+
+        Json::Value si_list = response[reply::CONTENT][query::SI];
+
+        LOG(ltrace, "SI list size: " + std::to_string(si_list.size()));
+        for (Json::Value::ArrayIndex i = 0; i != response.size(); i++) {
+            LOG(ltrace, response[i]["port"].asString());
+        }
+
+        return routes;
+    }
+
+}
+
 bool db::DBQuery::handle_req(const CURLcode& res, std::function<bool()> cb) {
     if(res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n",
@@ -245,7 +288,8 @@ std::string db::DBQuery::Endpoint::to_json() const {
         json[query::SOCK_EGRESS] = socket_id;
     }
 
-    std::string res = json.asString();
+    std::string res = json.toStyledString();
+    std::replace(res.begin(), res.end(), '\0', ' ');
     return res;
 }
 // End Endpoint
@@ -322,7 +366,10 @@ std::string db::DBQuery::Query::to_json() const {
         }
     }
 
-    return json_res.asString();
+    std::string res = json_res.toStyledString();
+    std::replace(res.begin(), res.end(), '\0', ' ');
+    return res;
+    //return json_res.asString();
 }
 
 std::string db::DBQuery::Query::to_url() const {

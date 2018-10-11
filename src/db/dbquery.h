@@ -35,6 +35,8 @@ const char* const EGRESS_IP = "ipEgress";
 const char* const INGRESS_IP = "ipIngress";
 const char* const INGRESS = "ingress";
 const char* const EGRESS = "egress";
+
+const char* const SI = "si";
 } // namespace query
 
 namespace reply {
@@ -46,6 +48,7 @@ const char* const REASON = "reason";
 } // namespace result
 
 const char* const ENDPOINT_PREFIX = "endpoints/";
+const char* const ROUTE_PREFIX = "routes/";
 
 enum endpoint_type{INGRESS_T, EGRESS_T};
 enum protocol_type{TCP, UDP};
@@ -142,11 +145,11 @@ public:
     std::string create_entry(const Query&);
     Entry get_entry(const char* id);
     bool delete_entry(const char* id);
-
     bool update_endpoint(const Query&, const Endpoint&);
 
+    std::vector<utils::Address> get_route_list(uint32_t);
 
-    // TODO get_next_route, get_chain_route, get_endpoint
+    // TODO get_next_route, get_chain_route
 };
 
 }
