@@ -23,6 +23,7 @@
 namespace db{
 
 namespace query {
+namespace endpoint {
 const char* const SRC_IP = "ipSrc";
 const char* const DST_IP = "ipDst";
 const char* const SRC_PORT = "portSrc";
@@ -35,10 +36,12 @@ const char* const EGRESS_IP = "ipEgress";
 const char* const INGRESS_IP = "ipIngress";
 const char* const INGRESS = "ingress";
 const char* const EGRESS = "egress";
-
+} // namespace endpoint
+namespace route {
 const char* const SI = "si";
 const char* const ADDRESS = "url";
 const char* const PORT = "port";
+} // namespace route
 } // namespace query
 
 namespace reply {

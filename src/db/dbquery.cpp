@@ -136,23 +136,23 @@ db::DBQuery::Entry db::DBQuery::get_entry(const char* id) {
 
         Json::Value content = response[reply::CONTENT];
 
-        protocol_type prt = content[query::PROTOCOL] == "tcp" ? TCP : UDP;
-        Endpoint ingress(content[query::INGRESS_IP].asString(),
-                         content[query::SOCK_INGRESS].asString(),
+        protocol_type prt = content[query::endpoint::PROTOCOL] == "tcp" ? TCP : UDP;
+        Endpoint ingress(content[query::endpoint::INGRESS_IP].asString(),
+                         content[query::endpoint::SOCK_INGRESS].asString(),
                          INGRESS_T);
 
-        Endpoint egress(content[query::EGRESS_IP].asString(),
-                        content[query::SOCK_EGRESS].asString(),
+        Endpoint egress(content[query::endpoint::EGRESS_IP].asString(),
+                        content[query::endpoint::SOCK_EGRESS].asString(),
                         EGRESS_T);
 
 
         return db::DBQuery::Entry::Builder()
                 .set_item_id(content["_id"]["$oid"].asString())
-                .set_id_sfc(content[query::SFC_ID].asString())
-                .set_ip_src(content[query::SRC_IP].asString())
-                .set_ip_dst(content[query::DST_IP].asString())
-                .set_port_src(content[query::SRC_PORT].asUInt())
-                .set_port_dst(content[query::DST_PORT].asUInt())
+                .set_id_sfc(content[query::endpoint::SFC_ID].asString())
+                .set_ip_src(content[query::endpoint::SRC_IP].asString())
+                .set_ip_dst(content[query::endpoint::DST_IP].asString())
+                .set_port_src(content[query::endpoint::SRC_PORT].asUInt())
+                .set_port_dst(content[query::endpoint::DST_PORT].asUInt())
                 .set_protocol(prt)
                 .set_endpoint(ingress)
                 .set_endpoint(egress)
@@ -214,15 +214,15 @@ std::vector<db::utils::Address> db::DBQuery::get_route_list(uint32_t p_id) {
                       &errors);
 
         Json::Value content = response[reply::CONTENT];
-        Json::Value si_list = response[reply::CONTENT][query::SI];
+        Json::Value si_list = response[reply::CONTENT][query::route::SI];
 
         LOG(ltrace, "SI list size: " + std::to_string(si_list.size()));
         /*for (Json::Value::ArrayIndex i = 0; i != response.size(); i++) {
             LOG(ltrace, response[i]["port"].asString());
         }*/
-        for (const Json::Value& address : content[query::SI]) {
-            utils::Address to_add(address[query::ADDRESS].asString(),
-                    address[query::PORT].asUInt());
+        for (const Json::Value& address : content[query::route::SI]) {
+            utils::Address to_add(address[query::route::ADDRESS].asString(),
+                    address[query::route::PORT].asUInt());
             routes.push_back(to_add);
         }
         return routes;
@@ -294,11 +294,11 @@ std::string db::DBQuery::Endpoint::to_json() const {
     Json::Value json;
 
     if (type_of_proxy == INGRESS_T) {
-        json[query::INGRESS_IP] = ip;
-        json[query::SOCK_INGRESS] = socket_id;
+        json[query::endpoint::INGRESS_IP] = ip;
+        json[query::endpoint::SOCK_INGRESS] = socket_id;
     } else {
-        json[query::EGRESS_IP] = ip;
-        json[query::SOCK_EGRESS] = socket_id;
+        json[query::endpoint::EGRESS_IP] = ip;
+        json[query::endpoint::SOCK_EGRESS] = socket_id;
     }
     return sanitize(json.toStyledString());
 }
@@ -359,20 +359,20 @@ db::DBQuery::Endpoint db::DBQuery::Query::get_endpoint(db::endpoint_type endpoin
 std::string db::DBQuery::Query::to_json() const {
     Json::Value json_res;
 
-    json_res[query::SRC_IP] = ip_src;
-    json_res[query::DST_IP] = ip_dst;
-    json_res[query::SRC_PORT] = port_src;
-    json_res[query::DST_PORT] = port_dst;
-    json_res[query::SFC_ID] = id_sfc;
-    (prt == protocol_type::TCP)? json_res[query::PROTOCOL] = "tcp" :
-            json_res[query::PROTOCOL] = "udp";
+    json_res[query::endpoint::SRC_IP] = ip_src;
+    json_res[query::endpoint::DST_IP] = ip_dst;
+    json_res[query::endpoint::SRC_PORT] = port_src;
+    json_res[query::endpoint::DST_PORT] = port_dst;
+    json_res[query::endpoint::SFC_ID] = id_sfc;
+    (prt == protocol_type::TCP)? json_res[query::endpoint::PROTOCOL] = "tcp" :
+            json_res[query::endpoint::PROTOCOL] = "udp";
     for (auto it = endpoints.cbegin(); it != endpoints.cend(); it++) {
         if (it->get_endpoint_typology() == INGRESS_T) {
-            json_res[query::SOCK_INGRESS] = it->get_socket_id();
-            json_res[query::INGRESS_IP] = it->get_ip();
+            json_res[query::endpoint::SOCK_INGRESS] = it->get_socket_id();
+            json_res[query::endpoint::INGRESS_IP] = it->get_ip();
         } else {
-            json_res[query::SOCK_EGRESS] = it->get_socket_id();
-            json_res[query::EGRESS_IP] = it->get_ip();
+            json_res[query::endpoint::SOCK_EGRESS] = it->get_socket_id();
+            json_res[query::endpoint::EGRESS_IP] = it->get_ip();
         }
     }
 
@@ -386,8 +386,8 @@ std::string db::DBQuery::Query::to_url() const {
     if (endpoints.size() != 0) {
         if (endpoints.size() == 1) {
             endpoints[0].get_endpoint_typology() == INGRESS_T ?
-                        query_builder.add_path(query::EGRESS) :
-                        query_builder.add_path(query::INGRESS);
+                        query_builder.add_path(query::endpoint::EGRESS) :
+                        query_builder.add_path(query::endpoint::INGRESS);
 
             query_builder.add_path(ip_src)
                     .add_path(ip_dst)
