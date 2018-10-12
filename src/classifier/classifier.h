@@ -28,9 +28,16 @@ public:
         bool operator==(const Mapper&) const;
         bool operator<(const Mapper&) const;
         static pkt_type default_mapping();
+
+        //TODO to remove when harbour calls are implemented
+        static Mapper defaultUDPMapper();
+        static Mapper defaultTCPMapper();
     };
     char* classify_pkt(unsigned char * pkt,
                              size_t pkt_len);
+
+    // TODO to refactor
+    static void set_remote(const char* ip, uint16_t port);
 };
 
 } // namespace classifier

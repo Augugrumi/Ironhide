@@ -53,3 +53,27 @@ bool classifier::Classifier::Mapper::operator<(const Mapper & m) const {
 classifier::pkt_type classifier::Classifier::Mapper::default_mapping() {
     return pkt_type::DEFAULT;
 }
+
+
+// ************************** temporary testing stuff **************************
+//TODO to remove when harbour calls are implemented
+classifier::Classifier::Mapper classifier::Classifier::Mapper::defaultUDPMapper() {
+    Mapper m;
+    m.type_ = pkt_type::UDP;
+    return m;
+}
+
+//TODO to remove when harbour calls are implemented
+classifier::Classifier::Mapper classifier::Classifier::Mapper::defaultTCPMapper() {
+    Mapper m;
+    m.type_ = pkt_type::TCP;
+    return m;
+}
+
+// TODO to refactor
+void classifier::Classifier::set_remote(const char *ip, uint16_t port) {
+    // TODO make requesto to harbour to populate sfc_map
+    Mapper m_udp = Mapper::defaultUDPMapper();
+    Mapper m_tcp = Mapper::defaultTCPMapper();
+
+}
