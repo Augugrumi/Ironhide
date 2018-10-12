@@ -10,20 +10,19 @@ std::string db::DBQuery::sanitize(const std::string& to_sanitize) {
     std::replace(res.begin(), res.end(), '\0', ' ');
     return res;
 }
-// End static methods
 
-// DBQuery
-db::DBQuery::DBQuery(const utils::Address& r_a) : roulette_addr(r_a) {
-    curl_global_init(CURL_GLOBAL_ALL);
-    curl = curl_easy_init();
+CURL* db::DBQuery::init_local_res() {
+    CURL* curl = curl_easy_init();
     if (curl == nullptr) {
         perror("Impossible to properly init curl");
         exit(EXIT_FAILURE);
     }
+    return curl;
 }
 
-db::DBQuery::DBQuery(const std::string& address, uint16_t port)
-        : db::DBQuery(utils::Address(address, port)) {}
+void db::DBQuery::clear_local_res(CURL* curl) {
+    curl_easy_cleanup(curl);
+}
 
 size_t db::DBQuery::curl_callback(void* ptr, size_t size,
                                   size_t nmemb, std::string* data) {
@@ -31,203 +30,234 @@ size_t db::DBQuery::curl_callback(void* ptr, size_t size,
     return size * nmemb;
 }
 
+// End static methods
+
+// DBQuery
+db::DBQuery::DBQuery(const utils::Address& r_a) : roulette_addr(r_a) {
+    curl_global_init(CURL_GLOBAL_ALL);
+}
+
+db::DBQuery::DBQuery(const std::string& address, uint16_t port)
+        : db::DBQuery(utils::Address(address, port)) {}
+
 std::string db::DBQuery::create_entry(const Query& query) {
-    struct curl_slist* header = nullptr;
-    std::string req_data_res;
-    std::string req_addr = utils::URLBuilder()
-            .set_address(roulette_addr)
-            .add_path(ENDPOINT_PREFIX)
-            .build();
-    std::string json_query = query.to_json();
+    std::function<std::string(CURL*)> real_req = [this, query](CURL* curl) {
+        struct curl_slist* header = nullptr;
+        std::string req_data_res;
+        std::string req_addr = utils::URLBuilder()
+                .set_address(roulette_addr)
+                .add_path(ENDPOINT_PREFIX)
+                .build();
+        std::string json_query = query.to_json();
 
-    LOG(ldebug, "URL to send data: " + req_addr);
-    LOG(ldebug, "Data to send: " + json_query);
+        LOG(ldebug, "URL to send data: " + req_addr);
+        LOG(ldebug, "Data to send: " + json_query);
 
-    header = curl_slist_append(header, "Content-Type: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
-    curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-    //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
-    //curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_query.c_str());
+        header = curl_slist_append(header, "Content-Type: application/json");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
+        curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+        //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
+        //curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_query.c_str());
 
-    /* Perform the request, res will get the return code */
-    CURLcode res = curl_easy_perform(curl);
+        /* Perform the request, res will get the return code */
+        CURLcode res = curl_easy_perform(curl);
 
-    curl_slist_free_all(header);
-    if (handle_req(
-                res,
-                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
+        curl_slist_free_all(header);
+        if (handle_req(
+                    res,
+                    std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
 
-        Json::CharReaderBuilder builder;
-        std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
-        Json::Value response;
+            Json::CharReaderBuilder builder;
+            std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+            Json::Value response;
 
-        std::string errors;
-        reader->parse(req_data_res.c_str(),
-                      req_data_res.c_str() + req_data_res.size(),
-                      &response,
-                      &errors);
+            std::string errors;
+            reader->parse(req_data_res.c_str(),
+                          req_data_res.c_str() + req_data_res.size(),
+                          &response,
+                          &errors);
 
 
-        return response[reply::CONTENT]["id"].asString();
-    }
+            return response[reply::CONTENT]["id"].asString();
+        }
 
-    return std::string();
+        return std::string();
+    };
+
+    return curl_req_handle(real_req);
 }
 
 bool db::DBQuery::update_endpoint(const Query& query, const Endpoint& to_add) {
-    struct curl_slist* header = nullptr;
-    std::string req_data_res;
-    std::string req_addr = utils::URLBuilder()
-            .set_address(roulette_addr)
-            .add_path(query.to_url())
-            .build();
-    std::string json_data = to_add.to_json();
+    std::function<bool(CURL*)> real_req = [this, query, to_add](CURL* curl) {
+        struct curl_slist* header = nullptr;
+        std::string req_data_res;
+        std::string req_addr = utils::URLBuilder()
+                .set_address(roulette_addr)
+                .add_path(query.to_url())
+                .build();
+        std::string json_data = to_add.to_json();
 
-    LOG(ldebug, "URL to send data: " + req_addr);
-    LOG(ldebug, "Data to send: " + json_data);
+        LOG(ldebug, "URL to send data: " + req_addr);
+        LOG(ldebug, "Data to send: " + json_data);
 
-    header = curl_slist_append(header, "Content-Type: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
-    curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-    //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
-    //curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data.c_str());
+        header = curl_slist_append(header, "Content-Type: application/json");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
+        curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+        //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
+        //curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data.c_str());
 
-    CURLcode res = curl_easy_perform(curl);
-    return handle_req(
-                res,
-                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
+        CURLcode res = curl_easy_perform(curl);
+        return handle_req(
+                    res,
+                    std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
+    };
+
+    return curl_req_handle<bool>(real_req);
 }
 
 db::DBQuery::Entry db::DBQuery::get_entry(const char* id) {
-    const std::string req_addr = utils::URLBuilder()
-            .set_address(roulette_addr)
-            .add_path(ENDPOINT_PREFIX)
-            .add_path(id)
-            .build();
-    std::string req_data_res;
-
-    curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
-
-    CURLcode res = curl_easy_perform(curl);
-    if (handle_req(
-                res,
-                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
-
-        Json::CharReaderBuilder builder;
-        std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
-        Json::Value response;
-
-        std::string errors;
-        reader->parse(req_data_res.c_str(),
-                      req_data_res.c_str() + req_data_res.size(),
-                      &response,
-                      &errors);
-
-        Json::Value content = response[reply::CONTENT];
-
-        protocol_type prt = content[query::endpoint::PROTOCOL] == "tcp" ? TCP : UDP;
-        Endpoint ingress(content[query::endpoint::INGRESS_IP].asString(),
-                         content[query::endpoint::SOCK_INGRESS].asString(),
-                         INGRESS_T);
-
-        Endpoint egress(content[query::endpoint::EGRESS_IP].asString(),
-                        content[query::endpoint::SOCK_EGRESS].asString(),
-                        EGRESS_T);
-
-
-        return db::DBQuery::Entry::Builder()
-                .set_item_id(content["_id"]["$oid"].asString())
-                .set_id_sfc(content[query::endpoint::SFC_ID].asString())
-                .set_ip_src(content[query::endpoint::SRC_IP].asString())
-                .set_ip_dst(content[query::endpoint::DST_IP].asString())
-                .set_port_src(content[query::endpoint::SRC_PORT].asUInt())
-                .set_port_dst(content[query::endpoint::DST_PORT].asUInt())
-                .set_protocol(prt)
-                .set_endpoint(ingress)
-                .set_endpoint(egress)
+    std::function<db::DBQuery::Entry(CURL*)> real_req = [this, id](CURL* curl) {
+        const std::string req_addr = utils::URLBuilder()
+                .set_address(roulette_addr)
+                .add_path(ENDPOINT_PREFIX)
+                .add_path(id)
                 .build();
-    } else {
-        return db::DBQuery::Entry::Builder().build();
-    }
+        std::string req_data_res;
+
+        curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
+
+        CURLcode res = curl_easy_perform(curl);
+        if (handle_req(
+                    res,
+                    std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
+
+            Json::CharReaderBuilder builder;
+            std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+            Json::Value response;
+
+            std::string errors;
+            reader->parse(req_data_res.c_str(),
+                          req_data_res.c_str() + req_data_res.size(),
+                          &response,
+                          &errors);
+
+            Json::Value content = response[reply::CONTENT];
+
+            protocol_type prt = content[query::endpoint::PROTOCOL] == "tcp" ? TCP : UDP;
+            Endpoint ingress(content[query::endpoint::INGRESS_IP].asString(),
+                             content[query::endpoint::SOCK_INGRESS].asString(),
+                             INGRESS_T);
+
+            Endpoint egress(content[query::endpoint::EGRESS_IP].asString(),
+                            content[query::endpoint::SOCK_EGRESS].asString(),
+                            EGRESS_T);
+
+
+            return db::DBQuery::Entry::Builder()
+                    .set_item_id(content["_id"]["$oid"].asString())
+                    .set_id_sfc(content[query::endpoint::SFC_ID].asString())
+                    .set_ip_src(content[query::endpoint::SRC_IP].asString())
+                    .set_ip_dst(content[query::endpoint::DST_IP].asString())
+                    .set_port_src(content[query::endpoint::SRC_PORT].asUInt())
+                    .set_port_dst(content[query::endpoint::DST_PORT].asUInt())
+                    .set_protocol(prt)
+                    .set_endpoint(ingress)
+                    .set_endpoint(egress)
+                    .build();
+        } else {
+            return db::DBQuery::Entry::Builder().build();
+        }
+    };
+
+    return curl_req_handle<db::DBQuery::Entry>(real_req);
 
 }
 
 bool db::DBQuery::delete_entry(const char* id) {
-    const std::string req_addr = utils::URLBuilder()
-            .set_address(roulette_addr)
-            .add_path(ENDPOINT_PREFIX)
-            .add_path(id)
-            .build();
-    std::string req_data_res;
+    std::function<bool(CURL*)> real_req = [this, id](CURL* curl) {
+        const std::string req_addr = utils::URLBuilder()
+                .set_address(roulette_addr)
+                .add_path(ENDPOINT_PREFIX)
+                .add_path(id)
+                .build();
+        std::string req_data_res;
 
-    curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
+        curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
 
-    CURLcode res = curl_easy_perform(curl);
-    return handle_req(
-                res,
-                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
+        CURLcode res = curl_easy_perform(curl);
+        return handle_req(
+                    res,
+                    std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
+    };
+
+    return curl_req_handle(real_req);
 }
 
 
 std::vector<db::utils::Address> db::DBQuery::get_route_list(uint32_t p_id) {
-    const std::string req_addr = utils::URLBuilder()
-            .set_address(roulette_addr)
-            .add_path(ROUTE_PREFIX)
-            .add_path(std::to_string(p_id))
-            .build();
-    std::vector<utils::Address> routes;
-    std::string req_data_res;
+    std::function<std::vector<db::utils::Address>(CURL*)> real_req = [this, p_id] (CURL* curl) {
 
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-    curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
+        const std::string req_addr = utils::URLBuilder()
+                .set_address(roulette_addr)
+                .add_path(ROUTE_PREFIX)
+                .add_path(std::to_string(p_id))
+                .build();
+        std::vector<utils::Address> routes;
+        std::string req_data_res;
 
-    CURLcode res = curl_easy_perform(curl);
-    if (handle_req(
-                res,
-                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
 
-        LOG(ltrace, "after if");
-        Json::CharReaderBuilder builder;
-        std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
-        Json::Value response;
+        CURLcode res = curl_easy_perform(curl);
+        if (handle_req(
+                    res,
+                    std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
 
-        std::string errors;
-        reader->parse(req_data_res.c_str(),
-                      req_data_res.c_str() + req_data_res.size(),
-                      &response,
-                      &errors);
+            LOG(ltrace, "after if");
+            Json::CharReaderBuilder builder;
+            std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+            Json::Value response;
 
-        Json::Value content = response[reply::CONTENT];
-        Json::Value si_list = response[reply::CONTENT][query::route::SI];
+            std::string errors;
+            reader->parse(req_data_res.c_str(),
+                          req_data_res.c_str() + req_data_res.size(),
+                          &response,
+                          &errors);
 
-        LOG(ltrace, "SI list size: " + std::to_string(si_list.size()));
-        /*for (Json::Value::ArrayIndex i = 0; i != response.size(); i++) {
-            LOG(ltrace, response[i]["port"].asString());
-        }*/
-        for (const Json::Value& address : content[query::route::SI]) {
-            utils::Address to_add(address[query::route::ADDRESS].asString(),
-                    address[query::route::PORT].asUInt());
-            routes.push_back(to_add);
+            Json::Value content = response[reply::CONTENT];
+            Json::Value si_list = response[reply::CONTENT][query::route::SI];
+
+            LOG(ltrace, "SI list size: " + std::to_string(si_list.size()));
+            /*for (Json::Value::ArrayIndex i = 0; i != response.size(); i++) {
+                LOG(ltrace, response[i]["port"].asString());
+            }*/
+            for (const Json::Value& address : content[query::route::SI]) {
+                utils::Address to_add(address[query::route::ADDRESS].asString(),
+                        address[query::route::PORT].asUInt());
+                routes.push_back(to_add);
+            }
+            return routes;
         }
-        return routes;
-    }
-    return std::vector<utils::Address>();
+        return std::vector<utils::Address>();
+    };
+
+    return curl_req_handle(real_req);
 }
 
 bool db::DBQuery::handle_req(const CURLcode& res, std::function<bool()> cb) {
@@ -264,9 +294,6 @@ bool db::DBQuery::is_op_ok(const std::string& req) {
 }
 
 db::DBQuery::~DBQuery() {
-    if (curl != nullptr) {
-        curl_easy_cleanup(curl);
-    }
     curl_global_cleanup();
 }
 // End DBQuery
