@@ -37,7 +37,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
             sfcid = classifier_.classify_pkt(buffer, received_len);
 
             std::vector<db::utils::Address> path =
-                    roulette_.get_route_list(atoi(sfcid));
+                    roulette_->get_route_list(atoi(sfcid));
             // +2 because of ingress & egress
             ttl = path.size() + 2;
             next_ip = const_cast<char*>(path[0].get_URL().c_str());
@@ -102,7 +102,7 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
             sfcid = classifier_.classify_pkt(buffer, received_len);
 
             std::vector<db::utils::Address> path =
-                    roulette_.get_route_list(atoi(sfcid));
+                    roulette_->get_route_list(atoi(sfcid));
             // +2 because of ingress & egress
             ttl = path.size() + 2;
             next_ip = const_cast<char*>(path[0].get_URL().c_str());

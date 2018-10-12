@@ -24,7 +24,7 @@ private:
 protected:
     static classifier::Classifier classifier_;
     // TODO inizialize
-    static db::DBQuery roulette_;
+    static db::DBQuery* roulette_;
     // TODO to implement
     void add_entry(ConnectionEntry, socket_fd, db::endpoint_type, db::protocol_type);
     void update_entry(ConnectionEntry, endpoint::socket_fd, db::endpoint_type);
@@ -37,6 +37,8 @@ protected:
     std::string get_my_ip() const;
 public:
     virtual void start(uint16_t int_port, uint16_t ext_port) = 0;
+    // TODO to refactor
+    static void set_remote(const char* ip, uint16_t port);
 };
 
 } // namespace endpoint

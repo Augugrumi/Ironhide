@@ -35,7 +35,7 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
                           db::protocol_type::TCP);
 
                 std::vector<db::utils::Address> path =
-                        roulette_.get_route_list(atoi(sfcid));
+                        roulette_->get_route_list(atoi(sfcid));
                 // +2 because of ingress & egress
                 ttl = path.size() + 2;
                 next_ip = const_cast<char*>(path[0].get_URL().c_str());
@@ -111,7 +111,7 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
                db::protocol_type::UDP);
 
     std::vector<db::utils::Address> path =
-            roulette_.get_route_list(atoi(sfcid));
+            roulette_->get_route_list(atoi(sfcid));
     // +2 because of ingress & egress
     unsigned long ttl = path.size() + 2;
     char* next_ip = const_cast<char*>(path[0].get_URL().c_str());
