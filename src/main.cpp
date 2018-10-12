@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     } else {
         LOG(linfo, "Starting as ingress...");
         endpoint::Ingress i;
-        i.start(int_port, ext_port);
+        i.start(ext_port, int_port);
     }
 
     return 0;
