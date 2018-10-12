@@ -4,6 +4,7 @@
 #include "endpoint/ingress.h"
 #include "endpoint/egress.h"
 
+#include "config.h"
 #include "db/dbquery.h"
 #include "log.h"
 
@@ -23,6 +24,9 @@ void usage() {
 }
 
 int main(int argc, char* argv[]) {
+#if DEBUG_BUILD
+    utils::Log::instance()->set_log_level(utils::Log::trace);
+#endif
     uint16_t ext_port = 8787;
     uint16_t int_port = 8778;
     bool is_egress = false;
@@ -47,9 +51,11 @@ int main(int argc, char* argv[]) {
     }
 
     if (is_egress) {
+        LOG(linfo, "Starting as egress...");
         endpoint::Egress e;
         e.start(int_port, ext_port);
     } else {
+        LOG(linfo, "Starting as ingress...");
         endpoint::Ingress i;
         i.start(int_port, ext_port);
     }
