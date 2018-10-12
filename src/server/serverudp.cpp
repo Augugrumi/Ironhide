@@ -7,6 +7,7 @@
 server::udp::ServerUDP::ServerUDP(uint16_t port) : Server(port){}
 
 void server::udp::ServerUDP::run() {
+    LOG(ldebug, "running server udp");
     int socket_fd;
     struct sockaddr_in address;
     udp_pkt_mngmnt_args * args;
@@ -51,6 +52,7 @@ void server::udp::ServerUDP::run() {
                                    BUFFER_SIZE, 0,
                                    (struct sockaddr *)&args->client_address,
                                    &client_address_len);
+        LOG(ldebug, "Received packet");
         if (pkt_len == -1) {
             perror("accept");
             free(args);

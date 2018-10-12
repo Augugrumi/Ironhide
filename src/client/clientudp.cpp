@@ -3,6 +3,7 @@
 //
 
 
+
 #include "clientudp.h"
 
 void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
@@ -22,24 +23,33 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
     hints.ai_flags = 0;
     hints.ai_protocol = IPPROTO_UDP; /* UDP protocol */
 
-    s = getaddrinfo(dst, std::to_string(port).c_str(), &hints, &result);
+    LOG(ldebug, "addr " + std::string(dst));
+    LOG(ldebug, "port " + std::to_string(port));
+
+    s = getaddrinfo(NULL, (std::string(dst).append(std::to_string(port))).c_str(), &hints, &result);
 
     if (s != 0) {
         perror("Error getting info for destination");
+        if (s == EAI_SYSTEM)
+            fprintf(stderr, "looking up www.example.com: %s\n", strerror(errno));
+        else
+            fprintf(stderr, "looking up www.example.com: %s\n", gai_strerror(s));
         exit(EXIT_FAILURE);
     }
+    LOG(ldebug, "here");
 
     for (rp = result; rp != nullptr && send_flag; rp = rp->ai_next) {
 
         sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
         if (sfd > 0 && connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1) {
+            LOG(ldebug, "sendto inside clientudp " + std::to_string(sfd));
             res = sendto(
                     sfd,
                     message,
                     message_len,
-                    MSG_CONFIRM,
-                    rp->ai_addr,
-                    rp->ai_addrlen);
+                    0,
+                    reinterpret_cast<sockaddr*>(rp->ai_addr),
+                    sizeof(*reinterpret_cast<sockaddr_in*>(rp->ai_addr)));
             if (res > 0) {
                 send_flag = false;
             }

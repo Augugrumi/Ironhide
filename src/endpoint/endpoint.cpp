@@ -5,7 +5,8 @@
 #include "endpoint.h"
 
 classifier::Classifier endpoint::Endpoint::classifier_;
-db::DBQuery* endpoint::Endpoint::roulette_ = new db::DBQuery("harbour", 80);
+// TODO retrieve roulette address
+db::DBQuery* endpoint::Endpoint::roulette_ = new db::DBQuery("localhost", 57684);
 
 void endpoint::Endpoint::add_entry(endpoint::ConnectionEntry ce,
                                    endpoint::socket_fd fd,
@@ -17,12 +18,13 @@ void endpoint::Endpoint::add_entry(endpoint::ConnectionEntry ce,
                    .set_id_sfc(ce.get_sfcid())
                    .set_protocol(protocol)
                    .set_endpoint(db::DBQuery::Endpoint(
-                           get_my_ip(), std::to_string(fd), endpoint))
+                           "127.0.0.1:8701", std::to_string(fd), endpoint))
                    .set_ip_src(ce.get_ip_src())
                    .set_ip_dst(ce.get_ip_dst())
                    .set_port_src(ce.get_port_src())
                    .set_port_dst(ce.get_port_dst())
                    .build());
+    LOG(ltrace, response);
     if (response != "")
         map_to_remote[ce] = response;
 }

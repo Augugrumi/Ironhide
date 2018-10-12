@@ -2,15 +2,14 @@
 // Created by zanna on 05/10/18.
 //
 
-#include <linux/ip.h>
-
-#include "packetutils.h"
 #include "classifier.h"
 
 char* classifier::Classifier::classify_pkt(unsigned char *pkt,
                                                   size_t pkt_len) {
     classifier::Classifier::Mapper m;
     m.set_pkt(pkt, pkt_len);
+    sfc_map[classifier::Classifier::Mapper::defaultUDPMapper()] = "0";
+    LOG(ltrace, "pkt type " + std::string(sfc_map.at(m)));
     return sfc_map.at(m);
 }
 
@@ -19,6 +18,9 @@ void classifier::Classifier::Mapper::set_pkt(unsigned char *pkt,
     //TODO take the packet, check the header and at least classify based on
     //     protocol. At the end set the type_ to not save all the pkt
     //     do not know how to do? default chain
+
+    LOG(ltrace, "set packet");
+
     if (pkt_len > sizeof(iphdr)) {
         iphdr h_ip = utils::PacketUtils::retrieve_ip_header(pkt);
         switch (h_ip.protocol) {
@@ -39,7 +41,8 @@ void classifier::Classifier::Mapper::set_pkt(unsigned char *pkt,
                 break;
         }
     }
-    type_ = classifier::DEFAULT;
+    LOG(ltrace, "pkt type " + std::to_string(type_));
+    //type_ = classifier::DEFAULT;
 }
 
 bool classifier::Classifier::Mapper::operator==(const Mapper & m) const {

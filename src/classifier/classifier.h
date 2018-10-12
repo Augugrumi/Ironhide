@@ -7,6 +7,10 @@
 
 #include <cstdio>
 #include <map>
+#include <linux/ip.h>
+
+#include "packetutils.h"
+#include "log.h"
 
 namespace classifier {
 

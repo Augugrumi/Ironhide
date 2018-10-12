@@ -17,6 +17,7 @@
 #include <string>
 
 #include "client.h"
+#include "log.h"
 
 namespace client{
 namespace udp{

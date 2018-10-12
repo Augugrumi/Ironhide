@@ -136,8 +136,6 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
 void endpoint::Egress::manage_pkt_from_chain(void * mngmnt_args) {
     auto args = (server::udp::udp_pkt_mngmnt_args *)mngmnt_args;
 
-    std::cout << "bla" << std::endl;
-
     std::string ack = "ACK";
     sendto(args->socket_fd,
            ack.c_str(),

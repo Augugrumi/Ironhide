@@ -5,10 +5,10 @@
 #include "ingress.h"
 
 void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
+    LOG(ldebug, "manage tcp packet");
+
     auto args = (server::tcp::tcp_pkt_mngmnt_args*)mngmnt_args;
     int new_socket_fd = args->new_socket_fd;
-
-    std::cout << "bla" << std::endl;
 
     ssize_t read_size;
     unsigned char pkt[BUFFER_SIZE];
@@ -83,12 +83,13 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
 
 
 void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
+    LOG(ldebug, "manage udp packet");
+
     auto args = (server::udp::udp_pkt_mngmnt_args *)mngmnt_args;
 
-
-    std::cout << "bla" << std::endl;
-
     std::string ack = "ACK";
+
+    LOG(ldebug, "manage udp packet sendto" + std::to_string(args->socket_fd));
     sendto(args->socket_fd,
            ack.c_str(),
            ack.length(),
@@ -96,12 +97,17 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
            reinterpret_cast<struct sockaddr*>(&args->client_address),
            sizeof(args->client_address));
 
+    LOG(ldebug, "ACK sent");
+
     char* sfcid = Endpoint::classifier_.classify_pkt((unsigned char*) args->pkt,
                                            args->pkt_len);
-
+    LOG(ltrace, "1");
     auto headers =
             utils::PacketUtils::retrieve_ip_udp_header(
                     (unsigned char*)args->pkt);
+
+    LOG(ltrace, "2");
+
     add_entry(ConnectionEntry(
                     utils::PacketUtils::int_to_ip(headers.first.saddr),
                     utils::PacketUtils::int_to_ip(headers.first.daddr),
@@ -110,12 +116,21 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
                db::endpoint_type::INGRESS_T,
                db::protocol_type::UDP);
 
+    LOG(ltrace, "3");
+
     std::vector<db::utils::Address> path =
             roulette_->get_route_list(atoi(sfcid));
+
+
+
+    LOG(ltrace, "4");
+
     // +2 because of ingress & egress
     unsigned long ttl = path.size() + 2;
     char* next_ip = const_cast<char*>(path[0].get_URL().c_str());
     uint16_t next_port = path[0].get_port();
+
+    LOG(ltrace, "5");
 
     sfc_header flh =
             utils::sfc_header::SFCUtilities::create_header(atoi(sfcid), 0,
@@ -130,19 +145,24 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
     utils::sfc_header::SFCUtilities::prepend_header((unsigned char*)args->pkt,
                                                     args->pkt_len,
                                                     flh, formatted_pkt);
+    LOG(ltrace, "6");
+    LOG(ltrace, next_ip);
+    LOG(ltrace, std::to_string(next_port));
     client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
                                                     args->pkt_len + SFCHDR_LEN,
                                                     next_ip, next_port);
+    LOG(ltrace, "7");
     delete(args->pkt);
     free(args);
 }
 
 void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
+    LOG(ldebug, "manage packet from chain");
+
     auto args = (server::udp::udp_pkt_mngmnt_args *)mngmnt_args;
 
-    std::cout << "bla" << std::endl;
-
     std::string ack = "ACK";
+    LOG(ldebug, "manage packet from chain sendto" + std::to_string(args->socket_fd));
     sendto(args->socket_fd,
            ack.c_str(),
            ack.length(),
@@ -150,13 +170,19 @@ void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
            reinterpret_cast<struct sockaddr*>(&args->client_address),
            sizeof(args->client_address));
 
+    LOG(ldebug, "ACK sent");
 
     struct sfc_header header =
             utils::sfc_header::SFCUtilities::retrieve_header((uint8_t*)args->pkt);
+
+    LOG(ldebug, "1");
+
     unsigned char* payload;
     utils::sfc_header::SFCUtilities::retrieve_payload((uint8_t*)args->pkt,
                                                       args->pkt_len,
                                                       payload);
+
+    LOG(ldebug, "2");
 
     endpoint::socket_fd sock = retrieve_connection(ConnectionEntry(
             utils::PacketUtils::int_to_ip(header.source_address),
@@ -164,15 +190,18 @@ void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
             header.source_port, header.destination_port,
             std::to_string(header.p_id)));
 
+    LOG(ldebug, "3");
+
     auto headers =
             utils::PacketUtils::retrieve_ip_udp_header(
                     (unsigned char*)(args->pkt + SFCHDR_LEN));
     // TODO think something more extensible to support more protocols
     // '6' is the code for TCP '17' for UDP
+    LOG(ldebug, "4");
     db::protocol_type conn_type = (headers.first.protocol == 6?
                                    db::protocol_type::TCP :
                                    db::protocol_type::UDP);
-
+    LOG(ldebug, "5");
     unsigned char resp_buff[BUFFER_SIZE];
     ssize_t resp_c;
     if (conn_type == db::protocol_type::TCP) {
@@ -183,11 +212,13 @@ void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
             exit(EXIT_FAILURE);
         }
     } else {
+        LOG(ldebug, "Recognized UDP protocol");
         struct sockaddr_in server;
         server.sin_family      = AF_INET;
         server.sin_port        = header.destination_port;
         server.sin_addr.s_addr = header.destination_address;
         socklen_t s = sizeof(server);
+        LOG(ldebug, "sendto inside manage pkt from chain");
         resp_c = sendto(sock, args->pkt, args->pkt_len, 0,
                         (struct sockaddr *)&server, sizeof(server));
         if (resp_c < 0) {
