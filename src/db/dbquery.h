@@ -61,13 +61,21 @@ enum protocol_type{TCP, UDP};
 class DBQuery {
 private:
     const utils::Address roulette_addr;
-    CURL* curl = nullptr;
 
-    static size_t curl_callback(void*, size_t, size_t, std::string*);
     bool is_op_ok(const std::string&);
     bool handle_req(const CURLcode&, std::function<bool()>);
 
+    template<typename T>
+    static T curl_req_handle(std::function<T(CURL*)> req) {
+        CURL* curl = init_local_res();
+        T res = req(curl);
+        clear_local_res(curl);
+        return res;
+    }
+    static size_t curl_callback(void*, size_t, size_t, std::string*);
     static std::string sanitize(const std::string&);
+    static CURL* init_local_res();
+    static void clear_local_res(CURL*);
 public:
     DBQuery(const std::string&, uint16_t port);
     DBQuery(const utils::Address&);
