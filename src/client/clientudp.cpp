@@ -55,7 +55,9 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
                    MSG_WAITALL,
                    rp->ai_addr, &(rp->ai_addrlen));
 
-    close(sfd);
+    if (sfd > 0) {
+        close(sfd);
+    }
     freeaddrinfo(result);
 }
 
