@@ -12,8 +12,8 @@ const uint8_t SFCUtilities::HEADER_SIZE = 24;
 
 struct sfc_header SFCUtilities::create_header(
         uint32_t service_path_id, uint32_t service_index,
-        char *source_address, uint16_t source_port,
-        char *dest_address, uint16_t dest_port,
+        const char *source_address, uint16_t source_port,
+        const char *dest_address, uint16_t dest_port,
         uint16_t ttl, uint8_t direction) {
     struct sfc_header header;
     header.ver = 0;

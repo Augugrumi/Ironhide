@@ -21,8 +21,8 @@ namespace utils {
 
             static struct sfc_header create_header(
                     uint32_t service_path_id, uint32_t service_index,
-                    char *source_address, uint16_t source_port,
-                    char *dest_address, uint16_t dest_port,
+                    const char *source_address, uint16_t source_port,
+                    const char *dest_address, uint16_t dest_port,
                     uint16_t ttl = 64, uint8_t direction = 0
             );
 
