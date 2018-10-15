@@ -11,8 +11,13 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
                                                     char *dst, uint16_t port) {
 
     struct addrinfo hints;
+<<<<<<< HEAD
     struct addrinfo *result, *rp, *address_used;
     fd_type sfd;
+=======
+    struct addrinfo *result, *rp;
+    fd_type sfd = - 1;
+>>>>>>> 2afac8e272add62d6bc25ae5a694b15978eac5fe
     int s;
     ssize_t res = -1;
     bool send_flag = true;
@@ -38,6 +43,10 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
     }
 
     for (rp = result; send_flag && rp != nullptr; rp = rp->ai_next) {
+
+        if (sfd > 0) {
+            close(sfd);
+        }
         sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
         if (sfd > 0 && connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1) {
             LOG(ldebug, "sendto inside clientudp " + std::to_string(sfd));
@@ -61,7 +70,9 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
     res = recvfrom(sfd, buffer, BUFFER_SIZE, 0,
                    address_used->ai_addr, &(address_used->ai_addrlen));
 
-    close(sfd);
+    if (sfd > 0) {
+        close(sfd);
+    }
     freeaddrinfo(result);
 }
 
