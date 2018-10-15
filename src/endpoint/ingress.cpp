@@ -81,7 +81,7 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
         close(new_socket_fd);
 }
 
-
+#include <iostream>
 void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
     LOG(ldebug, "manage udp packet");
 
@@ -121,36 +121,51 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
     std::vector<db::utils::Address> path =
             roulette_->get_route_list(atoi(sfcid));
 
-
+    for (db::utils::Address a : path) {
+        LOG(ltrace, "url " + a.get_URL());
+        LOG(ltrace, "port " + std::to_string(a.get_port()));
+    }
 
     LOG(ltrace, "4");
 
     // +2 because of ingress & egress
     unsigned long ttl = path.size() + 2;
-    char* next_ip = const_cast<char*>(path[0].get_URL().c_str());
+    char next_ip[path[0].get_address().size()];
+    strcpy(next_ip, path[0].get_address().c_str());
     uint16_t next_port = path[0].get_port();
 
     LOG(ltrace, "5");
 
+    LOG(ltrace, next_ip);
+    LOG(ltrace, std::to_string(next_port));
+
     sfc_header flh =
             utils::sfc_header::SFCUtilities::create_header(atoi(sfcid), 0,
-                    const_cast<char*>(utils::PacketUtils::int_to_ip(
-                            headers.first.saddr).c_str()),
+                    utils::PacketUtils::int_to_ip(
+                            headers.first.saddr).c_str(),
                     headers.second.source,
-                    const_cast<char*>(utils::PacketUtils::int_to_ip(
-                            headers.first.daddr).c_str()),
+                    utils::PacketUtils::int_to_ip(
+                            headers.first.daddr).c_str(),
                     headers.second.dest, ttl, 0);
 
-    unsigned char* formatted_pkt;
+    LOG(ltrace, next_ip);
+    LOG(ltrace, std::to_string(next_port));
+
+    unsigned char* formatted_pkt = new unsigned char[1];
     utils::sfc_header::SFCUtilities::prepend_header((unsigned char*)args->pkt,
                                                     args->pkt_len,
                                                     flh, formatted_pkt);
+
+
+
     LOG(ltrace, "6");
     LOG(ltrace, next_ip);
     LOG(ltrace, std::to_string(next_port));
     client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
                                                     args->pkt_len + SFCHDR_LEN,
-                                                    next_ip, next_port);
+                                                    const_cast<char*>(next_ip), next_port);
+    std::cout << formatted_pkt << std::endl;
+
     LOG(ltrace, "7");
     delete(args->pkt);
     free(args);
