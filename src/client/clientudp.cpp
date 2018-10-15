@@ -11,7 +11,7 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
                                                     char *dst, uint16_t port) {
 
     struct addrinfo hints;
-    struct addrinfo *result, *rp;
+    struct addrinfo *result, *rp, *address_used;
     fd_type sfd;
     int s;
     ssize_t res = -1;
@@ -26,7 +26,7 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
     LOG(ldebug, "addr " + std::string(dst));
     LOG(ldebug, "port " + std::to_string(port));
 
-    s = getaddrinfo(NULL, (std::string(dst).append(std::to_string(port))).c_str(), &hints, &result);
+    s = getaddrinfo(dst, std::to_string(port).c_str(), &hints, &result);
 
     if (s != 0) {
         perror("Error getting info for destination");
@@ -36,31 +36,30 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
             fprintf(stderr, "looking up www.example.com: %s\n", gai_strerror(s));
         exit(EXIT_FAILURE);
     }
-    LOG(ldebug, "here");
 
-    for (rp = result; rp != nullptr && send_flag; rp = rp->ai_next) {
-
+    for (rp = result; send_flag && rp != nullptr; rp = rp->ai_next) {
         sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
         if (sfd > 0 && connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1) {
             LOG(ldebug, "sendto inside clientudp " + std::to_string(sfd));
-            res = sendto(
+            /*res = sendto(
                     sfd,
                     message,
                     message_len,
                     0,
-                    reinterpret_cast<sockaddr*>(rp->ai_addr),
-                    sizeof(*reinterpret_cast<sockaddr_in*>(rp->ai_addr)));
+                    rp->ai_addr,
+                    rp->ai_addrlen);*/
+            res = 1;
             if (res > 0) {
                 send_flag = false;
+                LOG(ldebug, "Sent");
+                address_used = rp;
             }
         }
     }
 
     char buffer[BUFFER_SIZE];
-    res = recvfrom(sfd,
-                   (char *)buffer, BUFFER_SIZE,
-                   MSG_WAITALL,
-                   rp->ai_addr, &(rp->ai_addrlen));
+    res = recvfrom(sfd, buffer, BUFFER_SIZE, 0,
+                   address_used->ai_addr, &(address_used->ai_addrlen));
 
     close(sfd);
     freeaddrinfo(result);
