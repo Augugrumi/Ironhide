@@ -11,7 +11,7 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
 
     struct addrinfo hints;
     struct addrinfo *result, *rp;
-    fd_type sfd;
+    fd_type sfd = - 1;
     int s;
     ssize_t res = -1;
     bool send_flag = true;
@@ -31,6 +31,9 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
 
     for (rp = result; rp != nullptr && send_flag; rp = rp->ai_next) {
 
+        if (sfd > 0) {
+            close(sfd);
+        }
         sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
         if (sfd > 0 && connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1) {
             res = sendto(
