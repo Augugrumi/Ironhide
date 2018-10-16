@@ -41,26 +41,31 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
             sfcid = classifier_.classify_pkt(buffer, received_len);
             std::vector<db::utils::Address> path =
                     roulette_->get_route_list(atoi(sfcid));
-            // +2 because of ingress & egress
-            ttl = path.size() + 2;
-            next_ip = const_cast<char*>(path[0].get_URL().c_str());
-            next_port = path[0].get_port();
-            sfc_header flh =
-                    utils::sfc_header::SFCUtilities::create_header(
-                            atoi(sfcid), 0,
-                                    utils::PacketUtils::int_to_ip(
-                                            header.source_address).c_str(),
-                            htons(header.source_port),
-                                    utils::PacketUtils::int_to_ip(
-                                            header.destination_address).c_str(),
-                            htons(header.destination_port), ttl, 0);
 
-            utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
-                                                            flh, formatted_pkt);
+            if (!path.empty()) {
+                // +2 because of ingress & egress
+                ttl = path.size() + 2;
+                next_ip = const_cast<char*>(path[0].get_URL().c_str());
+                next_port = path[0].get_port();
+                sfc_header flh =
+                        utils::sfc_header::SFCUtilities::create_header(
+                                atoi(sfcid), 0,
+                                        utils::PacketUtils::int_to_ip(
+                                                header.source_address).c_str(),
+                                htons(header.source_port),
+                                        utils::PacketUtils::int_to_ip(
+                                                header.destination_address).c_str(),
+                                htons(header.destination_port), ttl, 0);
 
-            client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
-                                                            pkt_len + SFCHDR_LEN,
+                utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
+                                                                flh, formatted_pkt);
+
+                client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
+                                                                pkt_len + SFCHDR_LEN,
                                                             next_ip, next_port);
+            } else {
+                LOG(ldebug, "no route available, discarding packages");
+            }
         }
     } while(received_len > 0);
 
@@ -105,22 +110,31 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
             sfcid = classifier_.classify_pkt(buffer, received_len);
             std::vector<db::utils::Address> path =
                     roulette_->get_route_list(atoi(sfcid));
-            // +2 because of ingress & egress
-            ttl = path.size() + 2;
-            next_ip = const_cast<char*>(path[0].get_URL().c_str());
-            next_port = path[0].get_port();
-            sfc_header flh =
-                    utils::sfc_header::SFCUtilities::create_header(
-                            atoi(sfcid), 0, utils::PacketUtils::int_to_ip(
-                                            header.source_address).c_str(),
-                            htons(header.source_port), utils::PacketUtils::int_to_ip(
-                                            header.destination_address).c_str(),
-                            header.destination_port, ttl, 0);
-            utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
-                                                            flh, formatted_pkt);
-            client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
-                                                            pkt_len + SFCHDR_LEN,
-                                                            next_ip, next_port);
+
+            if (!path.empty()) {
+                // +2 because of ingress & egress
+                ttl = path.size() + 2;
+                next_ip = const_cast<char *>(path[0].get_URL().c_str());
+                next_port = path[0].get_port();
+                sfc_header flh =
+                        utils::sfc_header::SFCUtilities::create_header(
+                                atoi(sfcid), 0, utils::PacketUtils::int_to_ip(
+                                        header.source_address).c_str(),
+                                htons(header.source_port),
+                                utils::PacketUtils::int_to_ip(
+                                        header.destination_address).c_str(),
+                                header.destination_port, ttl, 0);
+                utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
+                                                                flh,
+                                                                formatted_pkt);
+                client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
+                                                                pkt_len +
+                                                                SFCHDR_LEN,
+                                                                next_ip,
+                                                                next_port);
+            } else {
+                LOG(ldebug, "no route available, discarding packages");
+            }
         }
     } while(received_len > 0);
 

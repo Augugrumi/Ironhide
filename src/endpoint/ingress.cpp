@@ -39,30 +39,35 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
 
                 std::vector<db::utils::Address> path =
                         roulette_->get_route_list(atoi(sfcid));
-                // +2 because of ingress & egress
-                ttl = path.size() + 2;
-                char next_ip[path[0].get_address().size()];
-                strcpy(next_ip, path[0].get_address().c_str());
-                next_port = path[0].get_port();
 
-                sfc_header flh =
-                        utils::sfc_header::SFCUtilities::create_header(
-                                atoi(sfcid), 0,const_cast<char*>(
-                                        utils::PacketUtils::int_to_ip(
-                                                headers.first.saddr).c_str()),
-                                headers.second.source,const_cast<char*>(
-                                        utils::PacketUtils::int_to_ip(
-                                                headers.first.daddr).c_str()),
-                                headers.second.dest, ttl, 0);
+                if (!path.empty()) {
+                    // +2 because of ingress & egress
+                    ttl = path.size() + 2;
+                    char next_ip[path[0].get_address().size()];
+                    strcpy(next_ip, path[0].get_address().c_str());
+                    next_port = path[0].get_port();
 
-                utils::sfc_header::SFCUtilities::prepend_header(pkt,read_size,
-                                                                flh, formatted_pkt);
-                client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
-                                                                read_size + SFCHDR_LEN,
-                                                                next_ip, next_port);
+                    sfc_header flh =
+                            utils::sfc_header::SFCUtilities::create_header(
+                                    atoi(sfcid), 0,const_cast<char*>(
+                                            utils::PacketUtils::int_to_ip(
+                                                    headers.first.saddr).c_str()),
+                                    headers.second.source,const_cast<char*>(
+                                            utils::PacketUtils::int_to_ip(
+                                                    headers.first.daddr).c_str()),
+                                    headers.second.dest, ttl, 0);
 
-                prev_sfcid = sfcid;
-                first_pkt = false;
+                    utils::sfc_header::SFCUtilities::prepend_header(pkt,read_size,
+                                                                    flh, formatted_pkt);
+                    client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
+                                                                    read_size + SFCHDR_LEN,
+                                                                    next_ip, next_port);
+
+                    prev_sfcid = sfcid;
+                    first_pkt = false;
+                } else {
+                    LOG(ldebug, "no route available, discarding packages")
+                }
             } catch(db::exceptions::ios_base::failure& e) {
                 perror(e.what());
                 db_error = true;
@@ -118,30 +123,34 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
     std::vector<db::utils::Address> path =
             roulette_->get_route_list(atoi(sfcid));
 
-    // +2 because of ingress & egress
-    unsigned long ttl = path.size() + 2;
-    char next_ip[path[0].get_address().size()];
-    strcpy(next_ip, path[0].get_address().c_str());
-    uint16_t next_port = path[0].get_port();
+    if (!path.empty()) {
+        // +2 because of ingress & egress
+        unsigned long ttl = path.size() + 2;
+        char next_ip[path[0].get_address().size()];
+        strcpy(next_ip, path[0].get_address().c_str());
+        uint16_t next_port = path[0].get_port();
 
-    sfc_header flh =
-            utils::sfc_header::SFCUtilities::create_header(atoi(sfcid), 0,
-                    utils::PacketUtils::int_to_ip(
-                            headers.first.saddr).c_str(),
-                    headers.second.source,
-                    utils::PacketUtils::int_to_ip(
-                            headers.first.daddr).c_str(),
-                    headers.second.dest, ttl, 0);
+        sfc_header flh =
+                utils::sfc_header::SFCUtilities::create_header(atoi(sfcid), 0,
+                        utils::PacketUtils::int_to_ip(
+                                headers.first.saddr).c_str(),
+                        headers.second.source,
+                        utils::PacketUtils::int_to_ip(
+                                headers.first.daddr).c_str(),
+                        headers.second.dest, ttl, 0);
 
-    unsigned char* formatted_pkt = new unsigned char[1];
-    utils::sfc_header::SFCUtilities::prepend_header((unsigned char*)args->pkt,
-                                                    args->pkt_len,
-                                                    flh, formatted_pkt);
+        unsigned char* formatted_pkt = new unsigned char[1];
+        utils::sfc_header::SFCUtilities::prepend_header((unsigned char*)args->pkt,
+                                                        args->pkt_len,
+                                                        flh, formatted_pkt);
 
-    client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
-                                                    args->pkt_len + SFCHDR_LEN,
-                                                    const_cast<char*>(next_ip),
-                                                    next_port);
+        client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
+                                                        args->pkt_len + SFCHDR_LEN,
+                                                        const_cast<char*>(next_ip),
+                                                        next_port);
+    } else {
+        LOG(ldebug, "no route available, discarding packages");
+    }
     delete(args->pkt);
     free(args);
 }
