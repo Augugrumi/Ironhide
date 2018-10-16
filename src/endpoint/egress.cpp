@@ -10,14 +10,12 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
                                                   socket_fd socket) {
     LOG(ldebug, "manage_exiting udp packets");
     auto header = utils::sfc_header::SFCUtilities::retrieve_header(pkt);
-
     client::udp::ClientUDP client;
     socket = client.send_only(
             pkt, pkt_len, const_cast<char*>(
                 utils::PacketUtils::int_to_ip(header.destination_address).c_str()),
             htons(header.destination_port));
     update_entry(ce, socket, db::endpoint_type::EGRESS_T);
-
     ssize_t received_len;
     auto buffer = new unsigned char[BUFFER_SIZE];
     struct sockaddr_in server;
@@ -41,14 +39,12 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
             exit(EXIT_FAILURE);
         } else if (received_len > 0) {
             sfcid = classifier_.classify_pkt(buffer, received_len);
-
             std::vector<db::utils::Address> path =
                     roulette_->get_route_list(atoi(sfcid));
             // +2 because of ingress & egress
             ttl = path.size() + 2;
             next_ip = const_cast<char*>(path[0].get_URL().c_str());
             next_port = path[0].get_port();
-
             sfc_header flh =
                     utils::sfc_header::SFCUtilities::create_header(
                             atoi(sfcid), 0,
@@ -61,6 +57,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
 
             utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
                                                             flh, formatted_pkt);
+
             client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
                                                             pkt_len + SFCHDR_LEN,
                                                             next_ip, next_port);
@@ -87,7 +84,6 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
                 const_cast<char*>(
                         utils::PacketUtils::int_to_ip(header.destination_address).c_str()),
                 htons(header.destination_port));
-
         socket = client.access_to_socket();
         update_entry(ce, socket, db::endpoint_type::EGRESS_T);
     }
@@ -107,14 +103,12 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
             exit(EXIT_FAILURE);
         } else if (received_len > 0) {
             sfcid = classifier_.classify_pkt(buffer, received_len);
-
             std::vector<db::utils::Address> path =
                     roulette_->get_route_list(atoi(sfcid));
             // +2 because of ingress & egress
             ttl = path.size() + 2;
             next_ip = const_cast<char*>(path[0].get_URL().c_str());
             next_port = path[0].get_port();
-
             sfc_header flh =
                     utils::sfc_header::SFCUtilities::create_header(
                             atoi(sfcid), 0, utils::PacketUtils::int_to_ip(
@@ -122,14 +116,12 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
                             htons(header.source_port), utils::PacketUtils::int_to_ip(
                                             header.destination_address).c_str(),
                             header.destination_port, ttl, 0);
-
             utils::sfc_header::SFCUtilities::prepend_header(buffer, pkt_len,
                                                             flh, formatted_pkt);
             client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
                                                             pkt_len + SFCHDR_LEN,
                                                             next_ip, next_port);
         }
-
     } while(received_len > 0);
 
     free(pkt);
@@ -167,22 +159,28 @@ void endpoint::Egress::manage_pkt_from_chain(void * mngmnt_args) {
     ConnectionEntry ce(utils::PacketUtils::int_to_ip(flh.source_address),
                        utils::PacketUtils::int_to_ip(flh.destination_address),
                        htons(flh.source_port), htons(flh.destination_port),
-                       std::to_string(flh.p_id));
+                       std::to_string(flh.p_id), conn_type);
 
     args->socket_fd = retrieve_connection(ce);
 
     if (conn_type == db::protocol_type::TCP) {
-        std::function<void ()> f = [this, &args, &ce]() {
+        std::function<void ()> f = [this, args, ce]() {
             manage_exiting_tcp_packets((unsigned char*)args->pkt, args->pkt_len,
                                        ce, args->socket_fd);
         };
-        ASYNC_TASK(f);
+        // TODO do something better with a real thread pool
+        //ASYNC_TASK(f);
+        std::thread t1(f);
+        t1.detach();
     } else {
-        std::function<void ()> f = [this, &args, &ce]() {
+        std::function<void ()> f = [this, args, ce]() {
             manage_exiting_udp_packets((unsigned char*)args->pkt, args->pkt_len,
                                        ce, args->socket_fd);
         };
-        ASYNC_TASK(f);
+        // TODO do something better with a real thread pool
+        //ASYNC_TASK(f);
+        std::thread t1(f);
+        t1.detach();
     };
 
 }
