@@ -37,18 +37,6 @@ void endpoint::Endpoint::add_entry(endpoint::ConnectionEntry ce,
 void endpoint::Endpoint::update_entry(endpoint::ConnectionEntry ce,
                                       endpoint::socket_fd fd,
                                       db::endpoint_type endpoint) {
-    LOG(ldebug, "here1");
-
-    auto s = db::DBQuery::Query::Builder()
-            .set_id_sfc(ce.get_sfcid())
-            .set_ip_src(ce.get_ip_src())
-            .set_ip_dst(ce.get_ip_dst())
-            .set_port_src(ce.get_port_src())
-            .set_port_dst(ce.get_port_dst())
-            .build();
-
-    LOG(ldebug, s.to_url());
-
     roulette_->update_endpoint(
             db::DBQuery::Query::Builder()
                     .set_endpoint_type(db::endpoint_type::INGRESS_T)
@@ -57,11 +45,11 @@ void endpoint::Endpoint::update_entry(endpoint::ConnectionEntry ce,
                     .set_ip_dst(ce.get_ip_dst())
                     .set_port_src(ce.get_port_src())
                     .set_port_dst(ce.get_port_dst())
+                    .set_protocol(ce.get_protocol_type())
                     .build(),
             db::DBQuery::Endpoint(
                     get_my_ip(), std::to_string(fd), endpoint)
             );
-    LOG(ldebug, "here2");
     connection_map[ce] = fd;
 }
 
