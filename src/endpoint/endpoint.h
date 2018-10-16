@@ -6,6 +6,12 @@
 #define IRONHIDE_ENDPOINT_H
 
 #include <cstdint>
+#include <stdio.h>
+#include <sys/types.h>
+#include <ifaddrs.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <arpa/inet.h>
 #include <map>
 
 #include "connectionentry.h"
@@ -22,6 +28,8 @@ private:
     std::map<ConnectionEntry, std::string> map_to_remote;
     std::string my_ip_;
 protected:
+    Endpoint();
+
     static classifier::Classifier classifier_;
     // TODO inizialize
     static db::DBQuery* roulette_;
@@ -35,6 +43,7 @@ protected:
     // TODO set it somewhere -> passing as argument to main so it easier to dockerize?
     void set_my_ip(const std::string& my_ip);
     std::string get_my_ip() const;
+    void retrieve_ip();
 public:
     virtual void start(uint16_t int_port, uint16_t ext_port) = 0;
     // TODO to refactor
