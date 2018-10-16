@@ -31,7 +31,8 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
                                 utils::PacketUtils::int_to_ip(headers.first.saddr),
                                 utils::PacketUtils::int_to_ip(headers.first.daddr),
                                 htons(headers.second.source),
-                                htons(headers.second.dest), sfcid),
+                                htons(headers.second.dest), sfcid,
+                                db::protocol_type::TCP),
                           new_socket_fd,
                           db::endpoint_type::INGRESS_T,
                           db::protocol_type::TCP);
@@ -107,7 +108,9 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
     add_entry(ConnectionEntry(
                     utils::PacketUtils::int_to_ip(headers.first.saddr),
                     utils::PacketUtils::int_to_ip(headers.first.daddr),
-                    headers.second.source, headers.second.dest, sfcid),
+                    htons(headers.second.source),
+                    htons(headers.second.dest),
+                    sfcid, db::protocol_type::UDP),
                args->socket_fd,
                db::endpoint_type::INGRESS_T,
                db::protocol_type::UDP);
@@ -164,12 +167,6 @@ void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
                                                       args->pkt_len,
                                                       payload);
 
-    endpoint::socket_fd sock = retrieve_connection(ConnectionEntry(
-            utils::PacketUtils::int_to_ip(header.source_address),
-            utils::PacketUtils::int_to_ip(header.destination_address),
-            header.source_port, header.destination_port,
-            std::to_string(header.p_id)));
-
     auto headers =
             utils::PacketUtils::retrieve_ip_udp_header(
                     (unsigned char*)(args->pkt + SFCHDR_LEN));
@@ -178,6 +175,12 @@ void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
     db::protocol_type conn_type = (headers.first.protocol == 6?
                                    db::protocol_type::TCP :
                                    db::protocol_type::UDP);
+
+    endpoint::socket_fd sock = retrieve_connection(ConnectionEntry(
+            utils::PacketUtils::int_to_ip(header.source_address),
+            utils::PacketUtils::int_to_ip(header.destination_address),
+            header.source_port, header.destination_port,
+            std::to_string(header.p_id), conn_type));
 
     unsigned char resp_buff[BUFFER_SIZE];
     ssize_t resp_c;
