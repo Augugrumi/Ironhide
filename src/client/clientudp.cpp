@@ -102,7 +102,7 @@ client::fd_type client::udp::ClientUDP::send_only(unsigned char *message,
                     sfd,
                     message,
                     message_len,
-                    MSG_CONFIRM,
+                    0,
                     rp->ai_addr,
                     rp->ai_addrlen);
             if (res > 0) {
