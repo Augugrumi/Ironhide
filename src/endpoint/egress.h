@@ -29,7 +29,8 @@ private:
     void manage_pkt_from_chain(void* args);
     void manage_exiting_tcp_packets(unsigned char* pkt, size_t pkt_len,
                                     const ConnectionEntry& ce, socket_fd fd);
-    void manage_exiting_udp_packets(unsigned char* pkt, size_t pkt_len);
+    void manage_exiting_udp_packets(unsigned char* pkt, size_t pkt_len,
+                                    const ConnectionEntry& ce, socket_fd fd);
 public:
     void start(uint16_t int_port, uint16_t ext_port) override;
 };
