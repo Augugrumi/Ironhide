@@ -95,10 +95,12 @@ bool db::DBQuery::update_endpoint(const Query& query, const Endpoint& to_add) {
     std::function<bool(CURL*)> real_req = [this, query, to_add](CURL* curl) {
         struct curl_slist* header = nullptr;
         std::string req_data_res;
+        std::string q = query.to_url();
         std::string req_addr = utils::URLBuilder()
                 .set_address(roulette_addr)
-                .add_path(query.to_url())
+                .add_path(q)
                 .build();
+
         std::string json_data = to_add.to_json();
 
         LOG(ldebug, "URL to send data: " + req_addr);
@@ -345,6 +347,18 @@ db::DBQuery::Query::Query(const std::string& new_item_id,
       id_sfc(new_id_sfc), endpoints(new_endpoints) {
 }
 
+db::DBQuery::Query::Query(const std::string& new_item_id,
+                          const std::string& new_ip_src,
+                          const std::string& new_ip_dst,
+                          uint16_t new_port_src,
+                          uint16_t new_port_dst,
+                          db::protocol_type type_of_protocol,
+                          const std::string& new_id_sfc,
+                          const db::endpoint_type & type)
+    : item_id(new_item_id), ip_src(new_ip_src), ip_dst(new_ip_dst),
+      port_src(new_port_src), port_dst(new_port_dst), prt(type_of_protocol),
+      id_sfc(new_id_sfc), endpoints(std::vector<Endpoint>()), type_(type) {}
+
 std::string db::DBQuery::Query::get_ip_src() const {
     return ip_src;
 }
@@ -435,7 +449,16 @@ std::string db::DBQuery::Query::to_url() const {
                                                              "I use?");
         }
     } else {
-        query_builder.add_path(item_id);
+        query_builder.add_path(type_ == db::endpoint_type::INGRESS_T?
+                               "ingress" : "egress")
+                .add_path(ip_src)
+                .add_path(ip_dst)
+                .add_path(std::to_string(port_src))
+                .add_path(std::to_string(port_dst))
+                .add_path(id_sfc)
+                .add_path(
+                        prt == TCP ? "tcp" : "udp"
+                );
         return query_builder.build();
     }
 }
@@ -481,8 +504,16 @@ db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_endpoint(const End
     endpoints.push_back(endpoint);
     return *this;
 }
+
+db::DBQuery::Query::Builder &
+db::DBQuery::Query::Builder::set_endpoint_type(const db::endpoint_type & type) {
+    type_ = type;
+    return *this;
+}
+
 db::DBQuery::Query db::DBQuery::Query::Builder::build() const {
-    return Query(item_id,
+    if (endpoints.size() > 0)
+        return Query(item_id,
                  ip_src,
                  ip_dst,
                  port_src,
@@ -490,5 +521,14 @@ db::DBQuery::Query db::DBQuery::Query::Builder::build() const {
                  prt,
                  id_sfc,
                  endpoints);
+    else
+        return Query(item_id,
+              ip_src,
+              ip_dst,
+              port_src,
+              port_dst,
+              prt,
+              id_sfc,
+              type_);
 }
 // End Query::Builder

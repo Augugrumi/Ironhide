@@ -106,6 +106,7 @@ public:
         const protocol_type prt;
         const std::string id_sfc;
         const std::vector<Endpoint> endpoints;
+        db::endpoint_type type_;
         Query(const std::string&,
               const std::string&,
               const std::string&,
@@ -114,6 +115,14 @@ public:
               protocol_type,
               const std::string&,
               const std::vector<Endpoint>&);
+        Query(const std::string&,
+              const std::string&,
+              const std::string&,
+              uint16_t,
+              uint16_t,
+              protocol_type,
+              const std::string&,
+              const db::endpoint_type&);
     public:
         std::string get_item_id() const;
         std::string get_ip_src() const;
@@ -136,6 +145,7 @@ public:
             uint16_t port_dst;
             protocol_type prt;
             std::string id_sfc;
+            db::endpoint_type type_;
             std::vector<Endpoint> endpoints;
         public:
             Builder() = default;
@@ -147,6 +157,7 @@ public:
             Builder& set_protocol(protocol_type);
             Builder& set_id_sfc(const std::string&);
             Builder& set_endpoint(const Endpoint&);
+            Builder& set_endpoint_type(const db::endpoint_type&);
             Query build() const;
         };
 
