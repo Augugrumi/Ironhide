@@ -28,7 +28,7 @@ private:
     void manage_entering_udp_packets(void* args);
     void manage_pkt_from_chain(void* args);
 public:
-    void start(uint16_t int_port, uint16_t ext_port) override;
+    void start(uint16_t ext_port, uint16_t int_port) override;
 };
 
 } // namespace endpoint
