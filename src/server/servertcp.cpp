@@ -67,8 +67,10 @@ void server::tcp::ServerTCP::run() {
 
         /* Create thread to serve connection to client. */
         // TODO find out something better
-        ASYNC_TASK(
-                std::bind<void>(manager_, args));
+        /*ASYNC_TASK(
+                std::bind<void>(manager_, args));*/
+        std::thread t1(manager_, args);
+        t1.detach();
     }
 
     /* close(socket_fd);
