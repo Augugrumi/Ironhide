@@ -8,7 +8,6 @@ server::udp::ServerUDP::ServerUDP(uint16_t port) : Server(port){}
 
 void server::udp::ServerUDP::run() {
     stopped_ = false;
-    LOG(ldebug, "running server udp");
     int socket_fd;
     struct sockaddr_in address;
     udp_pkt_mngmnt_args * args;
@@ -70,6 +69,7 @@ void server::udp::ServerUDP::run() {
         /* Create thread to serve connection to client. */
         /*ASYNC_TASK(
                 std::bind<void>(manager_, args));*/
+        // TODO find out something better
         std::thread t1(manager_, args);
         t1.detach();
     }
