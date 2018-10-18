@@ -51,10 +51,10 @@ uint16_t endpoint::ConnectionEntry::get_port_dst() const {
     return port_dst_;
 }
 
-const std::string &endpoint::ConnectionEntry::get_sfcid() const {
+std::string endpoint::ConnectionEntry::get_sfcid() const {
     return sfcid_;
 }
 
-const db::protocol_type endpoint::ConnectionEntry::get_protocol_type() const {
+db::protocol_type endpoint::ConnectionEntry::get_protocol_type() const {
     return prt_;
 }

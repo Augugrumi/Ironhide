@@ -31,8 +31,8 @@ public:
     const std::string &get_ip_dst() const;
     uint16_t get_port_src() const;
     uint16_t get_port_dst() const;
-    const std::string &get_sfcid() const;
-    const db::protocol_type get_protocol_type() const;
+    std::string get_sfcid() const;
+    db::protocol_type get_protocol_type() const;
 };
 
 }
