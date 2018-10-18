@@ -25,6 +25,9 @@ void server::udp::ServerUDP::run() {
         exit(1);
     }
 
+    int option = 1;
+    setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
+
     /* Bind address to socket. */
     if (bind(socket_fd, (struct sockaddr *)&address, sizeof address) == -1) {
         perror("bind");

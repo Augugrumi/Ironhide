@@ -23,12 +23,12 @@
 namespace server {
 namespace udp {
 
-typedef struct udp_pkt_mngmnt_args {
+typedef struct {
     int socket_fd;
     struct sockaddr_in client_address;
     char* pkt;
     ssize_t pkt_len;
-} pthread_arg_t;
+} udp_pkt_mngmnt_args;
 
 class ServerUDP : public Server {
 public:

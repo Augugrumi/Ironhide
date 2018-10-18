@@ -23,7 +23,7 @@
 namespace server {
 namespace tcp {
 
-typedef struct tcp_pkt_mngmnt_args {
+typedef struct {
     int new_socket_fd;
     struct sockaddr_in client_address;
 } tcp_pkt_mngmnt_args;
