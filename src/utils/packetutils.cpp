@@ -3,6 +3,9 @@
 //
 #include "packetutils.h"
 
+const char* utils::PacketUtils::ack("ACK");
+const uint8_t utils::PacketUtils::ack_size(3);
+
 std::string utils::PacketUtils::int_to_ip(uint32_t ip_int) {
     struct in_addr addr;
     addr.s_addr = ip_int;
