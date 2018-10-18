@@ -4,7 +4,7 @@
 
 #include "clienttcp.h"
 
-void client::tcp::ClientTCP::connect_to_server(char* dst, uint16_t port) {
+void client::tcp::ClientTCP::connect_to_server(const char* dst, uint16_t port) {
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket creation error");
         exit(EXIT_FAILURE);

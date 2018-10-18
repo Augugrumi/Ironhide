@@ -26,7 +26,7 @@ private:
     fd_type sock;
 
 public:
-    void connect_to_server(char* dst, uint16_t port);
+    void connect_to_server(const char* dst, uint16_t port);
     void send_and_receive(unsigned char* message, size_t message_len,
                           unsigned char* received, ssize_t received_len);
     fd_type access_to_socket() const;
