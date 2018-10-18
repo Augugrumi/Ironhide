@@ -36,5 +36,4 @@ struct sfc_header {
     uint32_t other:24;
 }__attribute__((__packed__)); // disallow optimization of byte positioning
 
-const unsigned short int SFCHDR_LEN = sizeof(sfc_header);
 #endif //IRONHIDE_SFCHEADERSTRUCT_H
