@@ -11,7 +11,7 @@ char* classifier::Classifier::classify_pkt(unsigned char *pkt,
     // TODO retrieve from harbor?
     sfc_map[classifier::Classifier::Mapper::defaultUDPMapper()] = "0";
     sfc_map[classifier::Classifier::Mapper::defaultTCPMapper()] = "0";
-    return sfc_map.at(m);
+    return const_cast<char*>(sfc_map.at(m));
 }
 
 void classifier::Classifier::Mapper::set_pkt(unsigned char *pkt,
@@ -39,6 +39,7 @@ void classifier::Classifier::Mapper::set_pkt(unsigned char *pkt,
                 break;
         }
     }
+    LOG(ldebug, "type: " + std::to_string(type_));
 }
 
 bool classifier::Classifier::Mapper::operator==(const Mapper & m) const {
@@ -70,9 +71,9 @@ classifier::Classifier::Mapper classifier::Classifier::Mapper::defaultTCPMapper(
 }
 
 // TODO to refactor
-void classifier::Classifier::set_remote(const char *ip, uint16_t port) {
+/*void classifier::Classifier::set_remote(const char *ip, uint16_t port) {
     // TODO make requesto to harbour to populate sfc_map
     Mapper m_udp = Mapper::defaultUDPMapper();
     Mapper m_tcp = Mapper::defaultTCPMapper();
 
-}
+}*/

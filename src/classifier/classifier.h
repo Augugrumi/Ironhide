@@ -21,7 +21,7 @@ public:
     class Mapper;
 private:
     // TODO request sfcs in order to popolate the map
-    std::map<Mapper, char*> sfc_map;
+    std::map<Mapper, const char*> sfc_map;
 public:
     class Mapper {
     private:
@@ -41,7 +41,7 @@ public:
                              size_t pkt_len);
 
     // TODO to refactor
-    static void set_remote(const char* ip, uint16_t port);
+    //static void set_remote(const char* ip, uint16_t port);
 };
 
 } // namespace classifier
