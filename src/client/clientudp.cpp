@@ -8,7 +8,8 @@
 
 void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
                                                     size_t message_len,
-                                                    char *dst, uint16_t port) {
+                                                    const char *dst,
+                                                    uint16_t port) {
 
     struct addrinfo hints;
     struct addrinfo *result, *rp, *address_used;
@@ -52,7 +53,6 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
                     0,
                     rp->ai_addr,
                     rp->ai_addrlen);
-            res = 1;
             if (res > 0) {
                 send_flag = false;
                 LOG(ldebug, "Sent");
@@ -73,7 +73,8 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
 
 client::fd_type client::udp::ClientUDP::send_only(unsigned char *message,
                                                   size_t message_len,
-                                                  char *dst, uint16_t port) {
+                                                  const char *dst,
+                                                  uint16_t port) {
     struct addrinfo hints;
     struct addrinfo *result, *rp;
     fd_type sfd;
