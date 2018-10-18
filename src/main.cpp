@@ -52,12 +52,12 @@ int main(int argc, char* argv[]) {
 
     if (is_egress) {
         LOG(linfo, "Starting as egress...");
-        endpoint::Egress e;
-        e.start(int_port, ext_port);
+        endpoint::Egress e(ext_port, int_port);
+        e.start();
     } else {
         LOG(linfo, "Starting as ingress...");
-        endpoint::Ingress i;
-        i.start(ext_port, int_port);
+        endpoint::Ingress i(ext_port, int_port);
+        i.start();
     }
 
     return 0;
