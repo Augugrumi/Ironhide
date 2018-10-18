@@ -8,8 +8,19 @@ classifier::Classifier endpoint::Endpoint::classifier_;
 // TODO retrieve roulette address
 db::DBQuery* endpoint::Endpoint::roulette_ = new db::DBQuery("localhost", 57684);
 
-endpoint::Endpoint::Endpoint() {
+
+
+endpoint::Endpoint::Endpoint(uint16_t ext_port, uint16_t int_port) :
+        ext_port_(ext_port), int_port_(int_port){
     retrieve_ip();
+}
+
+uint16_t endpoint::Endpoint::get_internal_port() const {
+    return int_port_;
+}
+
+uint16_t endpoint::Endpoint::get_external_port() const {
+    return ext_port_;
 }
 
 void endpoint::Endpoint::add_entry(endpoint::ConnectionEntry ce,
@@ -17,18 +28,46 @@ void endpoint::Endpoint::add_entry(endpoint::ConnectionEntry ce,
                                    db::endpoint_type endpoint,
                                    db::protocol_type protocol) {
     LOG(ltrace, get_my_ip());
-    connection_map[ce] = fd;
+    connection_map.insert(std::pair<ConnectionEntry, socket_fd >(ce, fd));
     std::string response = roulette_->create_entry(
             db::DBQuery::Query::Builder()
                    .set_id_sfc(ce.get_sfcid())
                    .set_protocol(protocol)
                    .set_endpoint(db::DBQuery::Endpoint(
-                           get_my_ip(), std::to_string(fd), endpoint))
+                           get_my_ip() + ":" + std::to_string(int_port_),
+                           std::to_string(fd), endpoint))
                    .set_ip_src(ce.get_ip_src())
                    .set_ip_dst(ce.get_ip_dst())
                    .set_port_src(ce.get_port_src())
                    .set_port_dst(ce.get_port_dst())
                    .build());
+    LOG(ltrace, response);
+    if (response != "")
+        map_to_remote[ce] = response;
+}
+
+void endpoint::Endpoint::add_entry(endpoint::ConnectionEntry ce,
+                                   endpoint::socket_fd fd,
+                                   sockaddr_in sockin,
+                                   db::endpoint_type endpoint,
+                                   db::protocol_type protocol) {
+    LOG(ldebug, "Adding entry");
+    LOG(ltrace, get_my_ip());
+    connection_map_2.insert(std::pair<ConnectionEntry,
+            std::pair<socket_fd, sockaddr_in>>(ce,
+                    std::pair<socket_fd, sockaddr_in>(fd,sockin)));
+    std::string response = roulette_->create_entry(
+            db::DBQuery::Query::Builder()
+                    .set_id_sfc(ce.get_sfcid())
+                    .set_protocol(protocol)
+                    .set_endpoint(db::DBQuery::Endpoint(
+                            get_my_ip() + ":" + std::to_string(int_port_),
+                            std::to_string(fd), endpoint))
+                    .set_ip_src(ce.get_ip_src())
+                    .set_ip_dst(ce.get_ip_dst())
+                    .set_port_src(ce.get_port_src())
+                    .set_port_dst(ce.get_port_dst())
+                    .build());
     LOG(ltrace, response);
     if (response != "")
         map_to_remote[ce] = response;
@@ -48,9 +87,10 @@ void endpoint::Endpoint::update_entry(endpoint::ConnectionEntry ce,
                     .set_protocol(ce.get_protocol_type())
                     .build(),
             db::DBQuery::Endpoint(
-                    get_my_ip(), std::to_string(fd), endpoint)
+                    get_my_ip() + ":" + std::to_string(int_port_),
+                    std::to_string(fd), endpoint)
             );
-    connection_map[ce] = fd;
+    connection_map.insert(std::pair<ConnectionEntry, socket_fd >(ce, fd));
 }
 
 void endpoint::Endpoint::delete_entry(endpoint::ConnectionEntry ce) {
@@ -67,6 +107,16 @@ endpoint::socket_fd endpoint::Endpoint::retrieve_connection(
     auto it = connection_map.find(ce);
     if (it == connection_map.end()) {
         return -1;
+    }
+    return it->second;
+}
+
+std::pair<endpoint::socket_fd, sockaddr_in>
+endpoint::Endpoint::retrieve_connection_2(
+        endpoint::ConnectionEntry ce) {
+    auto it = connection_map_2.find(ce);
+    if (it == connection_map_2.end()) {
+        return std::pair<socket_fd, sockaddr_in>(-1, sockaddr_in());
     }
     return it->second;
 }

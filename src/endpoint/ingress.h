@@ -10,6 +10,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <linux/ip.h>
+#include <stdint.h>
+#include <arpa/inet.h>
+#include <string>
 
 #include "endpoint.h"
 #include "servertcp.h"
@@ -28,7 +31,8 @@ private:
     void manage_entering_udp_packets(void* args);
     void manage_pkt_from_chain(void* args);
 public:
-    void start(uint16_t ext_port, uint16_t int_port) override;
+    Ingress(uint16_t ext_port, uint16_t int_port);
+    void start() override;
 };
 
 } // namespace endpoint
