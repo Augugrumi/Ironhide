@@ -8,7 +8,7 @@
 namespace utils {
 namespace sfc_header {
 
-const uint8_t SFCUtilities::HEADER_SIZE = 24;
+const uint8_t SFCUtilities::HEADER_SIZE = sizeof(struct sfc_header);
 
 struct sfc_header SFCUtilities::create_header(
         uint32_t service_path_id, uint32_t service_index,
@@ -36,7 +36,7 @@ struct sfc_header SFCUtilities::create_header(
 
 void SFCUtilities::prepend_header(unsigned char* no_header_pkt, size_t pkt_size,
           struct sfc_header header, unsigned char*& pkt_w_header) {
-    pkt_w_header = new unsigned char[HEADER_SIZE + pkt_size];
+    //pkt_w_header = new unsigned char[HEADER_SIZE + pkt_size];
     memcpy((char*)pkt_w_header, &header, HEADER_SIZE);
     memcpy((char*)pkt_w_header + HEADER_SIZE, no_header_pkt, pkt_size);
 }
