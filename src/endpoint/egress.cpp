@@ -363,19 +363,15 @@ void endpoint::Egress::manage_pkt_from_chain(void * mngmnt_args) {
                                        args->pkt_len,
                                        ce, args->socket_fd);
         };
-        // TODO do something better with a real thread pool
-        //ASYNC_TASK(f);
-        std::thread t1(f);
-        t1.detach();
+
+        GO_ASYNC(f);
     } else {
         std::function<void ()> f = [this, args, ce]() {
             manage_exiting_udp_packets((unsigned char*)args->pkt, args->pkt_len,
                                        ce, args->socket_fd);
         };
-        // TODO do something better with a real thread pool
-        //ASYNC_TASK(f);
-        std::thread t1(f);
-        t1.detach();
+
+        GO_ASYNC(f);
     };
 
 }

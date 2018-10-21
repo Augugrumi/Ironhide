@@ -70,18 +70,7 @@ void server::udp::ServerUDP::run() {
             printf("%x", *(args->pkt + i));
         printf("\n");
 
-        /* Initialise pthread argument. */
-        //pthread_arg->new_socket_fd = new_socket_fd;
-        /* TODO: Initialise arguments passed to threads here. See lines 22 and
-         * 139.
-         */
-
-        /* Create thread to serve connection to client. */
-        /*ASYNC_TASK(
-                std::bind<void>(manager_, args));*/
-        // TODO find out something better
-        std::thread t1(manager_, args);
-        t1.detach();
+        GO_ASYNC(std::bind<void>(manager_, args));
     }
 
     /* close(socket_fd);

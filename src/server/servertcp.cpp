@@ -64,16 +64,8 @@ void server::tcp::ServerTCP::run() {
 
         /* Initialise pthread argument. */
         args->new_socket_fd = new_socket_fd;
-        /* TODO: Initialise arguments passed to threads here. See lines 22 and
-         * 139.
-         */
 
-        /* Create thread to serve connection to client. */
-        // TODO find out something better
-        /*ASYNC_TASK(
-                std::bind<void>(manager_, args));*/
-        std::thread t1(manager_, args);
-        t1.detach();
+        GO_ASYNC(std::bind<void>(manager_, args));
     }
 
     /* close(socket_fd);
