@@ -33,6 +33,10 @@ void client::tcp::ClientTCP::send_and_receive(unsigned char* message,
                                               ssize_t received_len) {
     received = new unsigned char[BUFFER_SIZE];
 
+    for (int i = 0; i < message_len; i++)
+        printf("%x", *(message + i));
+    printf("\n");
+
     send(sock , message , message_len, 0);
     printf("Hello message sent\n");
     received_len = read(sock , received, BUFFER_SIZE);
@@ -40,6 +44,10 @@ void client::tcp::ClientTCP::send_and_receive(unsigned char* message,
         perror("error receiving data");
         exit(EXIT_FAILURE);
     }
+
+    for (int i = 0; i < received_len; i++)
+        printf("%x", *(received + i));
+    printf("\n");
 }
 
 client::fd_type client::tcp::ClientTCP::access_to_socket() const {

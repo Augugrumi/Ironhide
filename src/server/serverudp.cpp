@@ -2,6 +2,7 @@
 // Created by zanna on 04/10/18.
 //
 
+#include <utils/sfcutilities.h>
 #include "serverudp.h"
 
 server::udp::ServerUDP::ServerUDP(uint16_t port) : Server(port){}
@@ -63,6 +64,12 @@ void server::udp::ServerUDP::run() {
         }
         args->pkt_len = pkt_len;
         args->socket_fd = socket_fd;
+
+        printf("serverudpppp: ");
+        for (int i = 0; i < args->pkt_len; i++)
+            printf("%x", *(args->pkt + i));
+        printf("\n");
+
         /* Initialise pthread argument. */
         //pthread_arg->new_socket_fd = new_socket_fd;
         /* TODO: Initialise arguments passed to threads here. See lines 22 and
