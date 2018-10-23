@@ -38,8 +38,10 @@ void classifier::Classifier::Mapper::set_pkt(unsigned char *pkt,
                 type_ = classifier::DEFAULT;
                 break;
         }
+        LOG(ldebug, "type: " + std::to_string(type_) +
+                    " real:" + std::to_string(h_ip.protocol));
     }
-    LOG(ldebug, "type: " + std::to_string(type_));
+
 }
 
 bool classifier::Classifier::Mapper::operator==(const Mapper & m) const {

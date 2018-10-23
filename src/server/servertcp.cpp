@@ -56,6 +56,7 @@ void server::tcp::ServerTCP::run() {
         /* Accept connection to client. */
         client_address_len = sizeof args->client_address;
         new_socket_fd = accept(socket_fd, (struct sockaddr *)&args->client_address, &client_address_len);
+
         if (new_socket_fd == -1) {
             perror("accept");
             free(args);

@@ -30,6 +30,7 @@ public:
     void send_and_receive(unsigned char* message, size_t message_len,
                           unsigned char* received, ssize_t received_len);
     fd_type access_to_socket() const;
+    sockaddr_in access_to_sockaddr_in() const;
     void close_connection();
 };
 

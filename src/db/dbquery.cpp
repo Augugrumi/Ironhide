@@ -193,7 +193,9 @@ bool db::DBQuery::delete_entry(const char* id) {
                 .add_path(ENDPOINT_PREFIX)
                 .add_path(id)
                 .build();
+        LOG(ldebug, req_addr);
         std::string req_data_res;
+
 
         curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");

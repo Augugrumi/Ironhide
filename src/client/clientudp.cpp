@@ -62,9 +62,9 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
     }
 
     char buffer[BUFFER_SIZE];
-    res = recvfrom(sfd, buffer, BUFFER_SIZE, 0,
+    /*res = recvfrom(sfd, buffer, BUFFER_SIZE, 0,
                    address_used->ai_addr, &(address_used->ai_addrlen));
-
+*/
     if (sfd > 0) {
         close(sfd);
     }

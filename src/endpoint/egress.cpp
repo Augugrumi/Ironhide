@@ -27,19 +27,21 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
     LOG(ldebug, "destination: addr: " + INT_TO_IP(header.destination_address));
     LOG(ldebug, "destination: port: " + std::to_string(htons(header.destination_port)));
 
+    struct sockaddr_in server;
+    server.sin_family      = AF_INET;
+    server.sin_port        = htons(header.destination_port);
+    server.sin_addr.s_addr = header.destination_address;
+
     socket = client.send_only(pkt + pkt_calc, // move pointer after headers
                               pkt_len - pkt_calc, // resize without considering headers
                               INT_TO_IP_C_STR(header.destination_address),
                               htons(header.destination_port));
 
-    update_entry(ce, socket, db::endpoint_type::EGRESS_T);
+    update_entry(ce, socket, server, db::endpoint_type::EGRESS_T);
 
     ssize_t received_len;
     auto buffer = new unsigned char[BUFFER_SIZE];
-    struct sockaddr_in server;
-    server.sin_family      = AF_INET;
-    server.sin_port        = htons(header.destination_port);
-    server.sin_addr.s_addr = header.destination_address;
+
     socklen_t server_addr_len = sizeof(server);
     char* sfcid;
     char* next_ip;
@@ -127,7 +129,7 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
     printf("%d\n", htons(headers.second.dest));
 
     LOG(ldebug, "1");
-    //if (socket == -1) {
+    if (socket == -1) {
         client::tcp::ClientTCP client;
         LOG(ldebug, "a");
         LOG(ldebug, utils::PacketUtils::int_to_ip(header.destination_address));
@@ -136,11 +138,11 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
                                  htons(header.destination_port));
         LOG(ldebug, "b");
         socket = client.access_to_socket();
+        sockaddr_in sockin = client.access_to_sockaddr_in();
         LOG(ldebug, "c");
-        update_entry(ce, socket, db::endpoint_type::EGRESS_T);
+        update_entry(ce, socket, sockin, db::endpoint_type::EGRESS_T);
         LOG(ldebug, "d");
-        
-    //}
+    }
 
     printf("message to send\n");
     for(int i = 0; i < pkt_len; i++)
@@ -352,7 +354,7 @@ void endpoint::Egress::manage_pkt_from_chain(void * mngmnt_args) {
                        htons(flh.source_port), htons(flh.destination_port),
                        std::to_string(flh.p_id), conn_type);
 
-    args->socket_fd = retrieve_connection(ce);
+    args->socket_fd = retrieve_connection_2(ce).first;
 
     LOG(ldebug, "pkt_len: " + std::to_string(args->pkt_len));
 

@@ -54,6 +54,10 @@ client::fd_type client::tcp::ClientTCP::access_to_socket() const {
     return sock;
 }
 
+sockaddr_in client::tcp::ClientTCP::access_to_sockaddr_in() const {
+    return serv_addr;
+}
+
 void client::tcp::ClientTCP::close_connection() {
     close(sock);
 }
