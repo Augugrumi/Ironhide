@@ -19,7 +19,8 @@ void usage() {
             " -e   To set the egress mode - Default ingress mode\n"
             " -i   To set the port used for internal connections - Default 8778\n"
             " -o   To set the external port used - Default 8787\n"
-            " -h   Show this message\n";
+            " -h   Show this message\n"
+            "'ROULETTE_SERVICE' can be set into the env to change remote address";
     std::cout <<message<<std::endl;
 }
 
@@ -48,6 +49,10 @@ int main(int argc, char* argv[]) {
                 usage();
                 exit(0);
         }
+    }
+
+    if(const char* env_p = std::getenv("ROULETTE_SERVICE")) {
+        endpoint::Endpoint::set_remote(env_p);
     }
 
     if (is_egress) {

@@ -135,7 +135,7 @@ std::string endpoint::Endpoint::get_my_ip() const {
 }
 
 // TODO to refactor
-void endpoint::Endpoint::set_remote(const char *ip, uint16_t port) {
+void endpoint::Endpoint::set_remote(const char *ip) {
     delete(roulette_);
-    roulette_ = new db::DBQuery(ip, port);
+    roulette_ = new db::DBQuery(db::utils::Address(ip));
 }

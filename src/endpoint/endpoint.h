@@ -53,7 +53,7 @@ public:
     Endpoint(uint16_t ext_port, uint16_t int_port);
     virtual void start() = 0;
     // TODO to refactor
-    static void set_remote(const char* ip, uint16_t port);
+    static void set_remote(const char* ip);
 };
 
 } // namespace endpoint
