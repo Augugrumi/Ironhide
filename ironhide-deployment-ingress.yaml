@@ -1,0 +1,46 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: irohide-ingress-deployment
+  namespace: default
+  labels:
+    k8s-app: ironhide-vnf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: ironhide-vnf
+  template:
+    metadata:
+      labels:
+        k8s-app: ironhide-vnf
+        name: ironhide-vnf
+    spec:
+      containers:
+      - name: ironhide
+        image: augugrumi/ironhide:latest
+        imagePullPolicy: Always
+        ports:
+        - name: udp
+          containerPort: 8787
+          protocol: UDP
+        - name: tcp
+          containerPort: 8787
+          protocol: TCP
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ironhide-ingress-service
+  namespace: default
+spec:
+  selector:
+    k8s-app: ironhide-vnf
+  ports:
+  - name: udp
+    port: 8787
+    protocol: UDP
+  - name: tcp
+    port: 8787
+    protocol: TCP
+  type: NodePort
