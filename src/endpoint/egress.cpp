@@ -189,10 +189,15 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
                     roulette_->get_route_list(atoi(sfcid));
             LOG(ldebug, "8");
 
+            for (db::utils::Address a : path) {
+                LOG(ldebug, "address:" + a.get_address());
+                LOG(ldebug, "url:" + a.get_URL());
+            }
+
             if (!path.empty()) {
                 // +2 because of ingress & egress
                 ttl = path.size() + 2;
-                next_ip = const_cast<char *>(path[0].get_address().c_str());
+                db::utils::Address a = path.at(0);
                 next_port = path[0].get_port();
                 LOG(ldebug, "9");
                 sfc_header flh =
@@ -210,11 +215,11 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
                                                                 flh,
                                                                 pkt_pointer);
                 LOG(ldebug, "11");
-                LOG(ldebug, "next ip   " + std::string(next_ip));
+                LOG(ldebug, "next ip   " + std::string(a.get_address()));
                 LOG(ldebug, "next port " + std::to_string(next_port));
                 client::udp::ClientUDP().send_and_wait_response(pkt_pointer,
                                                                 received_len + SFC_HDR,
-                                                                next_ip,
+                                                                a.get_address().c_str(),
                                                                 next_port);
 
 
