@@ -8,8 +8,7 @@ LABEL maintainer="poloniodavide@gmail.com"
 
 RUN apt-get update && apt-get install -y \
     libjsoncpp1 \
-    libcurl4 \
-    libboost-system1.65.1 && \
+    libcurl4 && \
     rm -rf /var/lib/apt/lists/*
 
 VOLUME /data/
@@ -22,3 +21,4 @@ COPY --from=builder /tmpbuilding/build/src/ironhide /usr/bin/ironhide
 COPY ./docker/bootstrap.sh /usr/bin/bootstrap
 
 ENTRYPOINT ["bootstrap"]
+
