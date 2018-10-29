@@ -18,9 +18,9 @@ void client::tcp::ClientTCP::connect_to_server(const char* dst, uint16_t port) {
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
-    hints.ai_socktype = SOCK_STREAM; /* Datagram socket */
+    hints.ai_socktype = SOCK_STREAM; /* Stream socket */
     hints.ai_flags = 0;
-    hints.ai_protocol = IPPROTO_TCP; /* UDP protocol */
+    hints.ai_protocol = IPPROTO_TCP; /* TCP protocol */
 
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
