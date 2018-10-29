@@ -13,6 +13,8 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <netdb.h>
+#include <string>
 
 #include "client.h"
 
