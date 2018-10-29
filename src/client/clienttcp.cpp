@@ -23,7 +23,6 @@ void client::tcp::ClientTCP::connect_to_server(const char* dst, uint16_t port) {
     hints.ai_protocol = IPPROTO_TCP; /* UDP protocol */
 
     memset(&serv_addr, 0, sizeof(serv_addr));
-
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(port);
 
