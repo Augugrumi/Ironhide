@@ -49,7 +49,7 @@ void client::tcp::ClientTCP::connect_to_server(const char* dst, uint16_t port) {
             close(sfd);
         }
         sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (sfd > 0 && connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) != -1) {
+        if (sfd > 0 && connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1) {
             send_flag = false;
         }
     }
