@@ -53,6 +53,7 @@ void client::tcp::ClientTCP::connect_to_server(const char* dst, uint16_t port) {
             send_flag = false;
         }
     }
+    sock = sfd;
     freeaddrinfo(result);
     if (send_flag) {
         perror("connection failed");
