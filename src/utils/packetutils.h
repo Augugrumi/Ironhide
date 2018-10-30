@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <cstring>
+#include <netdb.h>
 #include <linux/tcp.h>
 #include <linux/udp.h>
 #include <linux/ip.h>
@@ -18,12 +19,21 @@ namespace utils {
 typedef std::pair<struct iphdr, tcphdr> header_ip_tcp;
 typedef std::pair<struct iphdr, udphdr> header_ip_udp;
 
+struct pseudo_header {
+    uint32_t source_address;
+    uint32_t dest_address;
+    uint8_t placeholder;
+    uint8_t protocol;
+    uint16_t udp_length;
+};
+
 class PacketUtils {
 private:
     PacketUtils() = default;
     const static uint16_t ip_hdr_len;
     const static uint16_t udp_hdr_len;
     const static uint16_t tcp_hdr_len;
+    static unsigned short csum(unsigned short*, int);
 public:
     static const char* ack;
     static const uint8_t ack_size;
@@ -35,6 +45,12 @@ public:
     static iphdr retrieve_ip_header(unsigned char *);
     static unsigned int udp_packet_header_size(unsigned char*);
     static unsigned int tcp_packet_header_size(unsigned char*);
+    static void forge_ip_udp_pkt(unsigned char* data, size_t data_len,
+            const char* source_ip, const char* dest_ip,
+            uint16_t source_port, uint16_t dest_port,
+            struct iphdr*& iph, struct udphdr*& udph,
+            unsigned char*& pkt);
+    static const char* hostname_to_ip(const char* hostname);
 };
 
 #define INT_TO_IP(ip_int) \

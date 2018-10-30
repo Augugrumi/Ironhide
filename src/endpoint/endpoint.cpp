@@ -12,8 +12,8 @@ db::DBQuery* endpoint::Endpoint::roulette_ = new db::DBQuery("localhost", 57684)
 
 endpoint::Endpoint::Endpoint(uint16_t ext_port, uint16_t int_port) :
         ext_port_(ext_port), int_port_(int_port){
-    //retrieve_ip();
-    my_ip_ = "127.0.0.1";
+    retrieve_ip();
+    //my_ip_ = "127.0.0.1";
 }
 
 uint16_t endpoint::Endpoint::get_internal_port() const {
@@ -98,7 +98,7 @@ void endpoint::Endpoint::set_my_ip(const std::string &my_ip) {
 }
 
 void endpoint::Endpoint::retrieve_ip() {
-    const char * interface = "eth0";
+    const char * interface = "wlan0";
     struct ifaddrs * ifAddrStruct=NULL;
     struct ifaddrs * ifa=NULL;
     void * tmpAddrPtr=NULL;
