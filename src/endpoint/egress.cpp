@@ -2,6 +2,12 @@
 // Created by zanna on 05/10/18.
 //
 #include <fcntl.h>
+#include <fstream>
+#include <vector>
+#include <iterator>
+#include <ostream>
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
 #include "egress.h"
 
 endpoint::Egress::Egress(uint16_t ext_port, uint16_t int_port) :
@@ -42,8 +48,8 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
     struct iphdr* iph;
     struct udphdr* udph;
     utils::PacketUtils::forge_ip_udp_pkt(pkt + pkt_calc, pkt_len - pkt_calc,
-            ce.get_ip_src().c_str(), ce.get_ip_dst().c_str(),
-            ce.get_port_src(), ce.get_port_dst(),
+            get_my_ip().c_str(), ce.get_ip_dst().c_str(),
+            get_external_port(), ce.get_port_dst(),
             iph, udph,
             total_pkt);
 
@@ -116,9 +122,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
                                 (struct sockaddr *)&server,
                                 &(server_addr_len));*/
         printf("Message size: %d\n", received_len + SFC_HDR);
-        for(int i = 0; i < received_len; i++)
-            printf("%x", buffer[i]);
-        printf("\n");
+
         if (received_len < 0) {
             perror("error receiving data");
             //exit(EXIT_FAILURE);
@@ -132,6 +136,8 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
                 ttl = path.size() + 2;
                 next_ip = const_cast<char*>(path[0].get_address().c_str());
                 next_port = path[0].get_port();
+
+                auto resp_h = utils::PacketUtils::retrieve_ip_udp_header(buffer);
 
                 sfc_header flh =
                         utils::sfc_header::SFCUtilities::create_header(
@@ -152,6 +158,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
                                                                 received_len + SFC_HDR,
                                                                 next_ip,
                                                                 next_port);
+
             } else {
                 LOG(ldebug, "no route available, discarding packages");
             }

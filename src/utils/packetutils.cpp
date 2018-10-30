@@ -150,8 +150,8 @@ void utils::PacketUtils::forge_ip_udp_pkt(unsigned char *data, size_t data_len,
     iph->check = csum ((unsigned short *) datagram, iph->tot_len);
 
     //UDP header
-    udph->source = htons (source_port);
-    udph->dest = htons (dest_port);
+    udph->source = htons(source_port);//(source_port);
+    udph->dest = htons(dest_port);
     udph->len = htons(8 + data_len); //udp header size
     udph->check = 0; //leave checksum 0 now, filled later by pseudo header
 

@@ -75,11 +75,12 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
                                                                         read_size,
                                                                         flh, p);
 
-
+                        printf("next ip %s\n", next_ip);
+                        printf("next port %d\n", next_port);
                         client::udp::ClientUDP().send_and_wait_response(p,
                                                                         read_size +
                                                                         SFC_HDR,
-                                                                        next_ip,
+                                                                        path[0].get_address().c_str(),
                                                                         next_port);
 
                         prev_sfcid = sfcid;
