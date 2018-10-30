@@ -93,6 +93,7 @@ std::pair<endpoint::socket_fd, sockaddr_in>
 }
 
 void endpoint::Endpoint::set_my_ip(const std::string &my_ip) {
+    LOG(ldebug, "MyIpAddress set to: " + get_my_ip());
     my_ip_ = my_ip;
 }
 
@@ -122,12 +123,11 @@ void endpoint::Endpoint::retrieve_ip() {
             tmpAddrPtr=&((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr;
             char addressBuffer[INET6_ADDRSTRLEN];
             inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);
-            if (strncmp(interface, ifa->ifa_name, COMPARE_LENGTH) == 0) {
+            // Don't do anything at the moment
+            /*if (strncmp(interface, ifa->ifa_name, COMPARE_LENGTH) == 0) {
                 set_my_ip(addressBuffer);
-            }
-            LOG(ldebug, "MyIpAddress: " + get_my_ip());
+            }*/
         }
-        LOG(ldebug, "MyIpAddress: " + get_my_ip());
     }
     if (ifAddrStruct != nullptr){
         freeifaddrs(ifAddrStruct);
