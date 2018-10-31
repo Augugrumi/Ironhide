@@ -2,21 +2,32 @@
 // Created by zanna on 05/10/18.
 //
 #include <fcntl.h>
+#include <fstream>
+#include <vector>
+#include <iterator>
+#include <ostream>
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
+#include <sys/socket.h>
+
 #include "egress.h"
 
 endpoint::Egress::Egress(uint16_t ext_port, uint16_t int_port) :
         Endpoint(ext_port, int_port){}
 
 
+
+
+
 void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
                                                   size_t pkt_len,
                                                   const ConnectionEntry& ce,
-                                                  socket_fd socket) {
+                                                  socket_fd sock) {
     const unsigned int pkt_calc = SFC_HDR + IP_UDP_H_LEN(pkt + SFC_HDR);
 
     LOG(ldebug, "manage_exiting udp packets");
     auto header = utils::sfc_header::SFCUtilities::retrieve_header(pkt);
-    client::udp::ClientUDP client;
+    //client::udp::ClientUDP client;
 
 
     printf("message to send\n");
@@ -27,35 +38,106 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
     LOG(ldebug, "destination: addr: " + INT_TO_IP(header.destination_address));
     LOG(ldebug, "destination: port: " + std::to_string(htons(header.destination_port)));
 
+    // raw socket to send data
+    if ((sock = socket(AF_INET, SOCK_RAW, IPPROTO_RAW)) == -1) {
+        //socket creation failed, may be because of non-root privileges
+        perror("Failed to create raw socket");
+        exit(EXIT_FAILURE);
+    }
+
+    unsigned char datagram[BUFFER_SIZE];
+    unsigned char* total_pkt = datagram;
+    struct iphdr* iph;
+    struct udphdr* udph;
+    utils::PacketUtils::forge_ip_udp_pkt(pkt + pkt_calc, pkt_len - pkt_calc,
+            get_my_ip().c_str(), ce.get_ip_dst().c_str(),
+            get_external_port(), ce.get_port_dst(),
+            iph, udph,
+            total_pkt);
+
+
+    int raw_socket;
+    struct sockaddr_in sockstr;
+    socklen_t socklen;
+
+    int retval = 0; /* the return value (give a look when an error happens)
+                     */
+
+    /* no pointer to array!
+     * >> It was like "a variable that contains an address -- and in this
+     *    address begins an array of chars"! */
+    /* now it is simple an array of chars :-)  */
+    char msg[BUFFER_SIZE];
+    ssize_t msglen; /* return value from recv() */
+
+    /* do not use IPPROTO_RAW to receive packets */
+    if ((raw_socket = socket(AF_INET, SOCK_RAW, IPPROTO_UDP)) == -1) {
+        perror("socket");
+        exit(EXIT_FAILURE); /* here there is no clean up -- retval was not used */
+    }
+
+    sockstr.sin_family = AF_INET;
+    sockstr.sin_port = htons(get_external_port());//ce.get_port_dst());
+    sockstr.sin_addr.s_addr = inet_addr(get_my_ip().c_str());//inet_addr(ce.get_ip_dst().c_str());
+    socklen = (socklen_t) sizeof(sockstr);
+
+    if (bind(raw_socket, (struct sockaddr*) &sockstr, socklen) == -1) {
+        perror("raw socket bind");
+        close(raw_socket);
+        exit(EXIT_FAILURE);
+    }
+
+
+
+    memset(msg, 0, BUFFER_SIZE);
+
     struct sockaddr_in server;
     server.sin_family      = AF_INET;
     server.sin_port        = htons(header.destination_port);
     server.sin_addr.s_addr = header.destination_address;
+    socklen_t serverlen = sizeof(server);
 
-    socket = client.send_only(pkt + pkt_calc, // move pointer after headers
+    /*if (bind(sock, (struct sockaddr*) &server, serverlen) == -1) {
+        perror("raw socket bind");
+        close(sock);
+        exit(EXIT_FAILURE);
+    }*/
+
+    if (sendto(sock, datagram, iph->tot_len , 0,
+               (struct sockaddr *) &server, sizeof (server)) < 0) {
+        perror("sendto failed");
+        exit(EXIT_FAILURE);
+    } else {
+        LOG(ldebug, "Packet Send "/* + std::to_string(getsockname(raw_socket, (sockaddr*)&sockstr, &socklen))*/);
+    }
+
+    LOG(ldebug, std::to_string(getsockname(raw_socket, (sockaddr*)&sockstr, &socklen)));
+
+    /*socket = client.send_only(pkt + pkt_calc, // move pointer after headers
                               pkt_len - pkt_calc, // resize without considering headers
                               INT_TO_IP_C_STR(header.destination_address),
-                              htons(header.destination_port));
+                              htons(header.destination_port));*/
 
-    update_entry(ce, socket, server, db::endpoint_type::EGRESS_T);
+    update_entry(ce, sock, server, db::endpoint_type::EGRESS_T);
 
     ssize_t received_len;
     auto buffer = new unsigned char[BUFFER_SIZE];
 
     socklen_t server_addr_len = sizeof(server);
     char* sfcid;
-    char* next_ip;
+    const char* next_ip;
     uint16_t next_port;
     unsigned long ttl;
 
     do {
-        received_len = recvfrom(socket,buffer, BUFFER_SIZE,0,
-                                (struct sockaddr *)&server,
-                                &(server_addr_len));
+        received_len = recvfrom(raw_socket,buffer, BUFFER_SIZE,0,
+                                (struct sockaddr *)&sockstr,
+                                &(socklen));
         printf("Message size: %d\n", received_len + SFC_HDR);
+
         if (received_len < 0) {
             perror("error receiving data");
-            //exit(EXIT_FAILURE);
+            exit(EXIT_FAILURE);
         } else if (received_len > 0) {
             sfcid = classifier_.classify_pkt(buffer, received_len);
             std::vector<db::utils::Address> path =
@@ -64,8 +146,10 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
             if (!path.empty()) {
                 // +2 because of ingress & egress
                 ttl = path.size() + 2;
-                next_ip = const_cast<char*>(path[0].get_address().c_str());
+                next_ip = path[0].get_address().c_str();
                 next_port = path[0].get_port();
+
+                auto resp_h = utils::PacketUtils::retrieve_ip_udp_header(buffer);
 
                 sfc_header flh =
                         utils::sfc_header::SFCUtilities::create_header(
@@ -73,7 +157,8 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
                                 INT_TO_IP_C_STR(header.source_address),
                                 header.source_port,
                                 INT_TO_IP_C_STR(header.destination_address),
-                                header.destination_port, ttl, 1);
+                                header.destination_port,
+                                ttl, 1);
 
                 unsigned char formatted_pkt[received_len + SFC_HDR];
                 unsigned char* pkt_pointer = formatted_pkt;
@@ -84,11 +169,14 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
 
                 client::udp::ClientUDP().send_and_wait_response(pkt_pointer,
                                                                 received_len + SFC_HDR,
-                                                                next_ip,
+                                                                path[0].get_address().c_str(),
                                                                 next_port);
+
             } else {
                 LOG(ldebug, "no route available, discarding packages");
             }
+            if (received_len < BUFFER_SIZE)
+                break;
         }
     } while(received_len > 0);
 
@@ -230,8 +318,11 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
             }
 
             if (received_len < BUFFER_SIZE) {
+                LOG(ltrace, "break");
                 break;
             }
+        } else {
+            break;
         }
     } while(1);
 

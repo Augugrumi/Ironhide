@@ -75,11 +75,12 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
                                                                         read_size,
                                                                         flh, p);
 
-
+                        printf("next ip %s\n", next_ip);
+                        printf("next port %d\n", next_port);
                         client::udp::ClientUDP().send_and_wait_response(p,
                                                                         read_size +
                                                                         SFC_HDR,
-                                                                        next_ip,
+                                                                        path[0].get_address().c_str(),
                                                                         next_port);
 
                         prev_sfcid = sfcid;
@@ -233,9 +234,11 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
                                                         args->pkt_len,
                                                         flh, p);
 
+        printf("next ip %s\n", path[0].get_address().c_str());
+        printf("next port %d\n", next_port);
         client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
                                                         args->pkt_len + SFC_HDR,
-                                                        const_cast<char*>(next_ip),
+                                                        path[0].get_address().c_str(),
                                                         next_port);
     } else {
         LOG(ldebug, "no route available, discarding packages");
@@ -306,6 +309,12 @@ void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
             perror("1. sendto()");
             exit(EXIT_FAILURE);
         }
+        delete_entry(ConnectionEntry(
+                INT_TO_IP(header.source_address),
+                INT_TO_IP(header.destination_address),
+                htons(header.source_port),
+                htons(header.destination_port), std::to_string(header.p_id),
+                db::protocol_type::UDP));
     };
 
     delete(args->pkt);
