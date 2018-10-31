@@ -13,7 +13,6 @@ db::DBQuery* endpoint::Endpoint::roulette_ = new db::DBQuery("localhost", 57684)
 endpoint::Endpoint::Endpoint(uint16_t ext_port, uint16_t int_port) :
         ext_port_(ext_port), int_port_(int_port){
     retrieve_ip();
-    //my_ip_ = "127.0.0.1";
 }
 
 uint16_t endpoint::Endpoint::get_internal_port() const {
@@ -94,18 +93,20 @@ std::pair<endpoint::socket_fd, sockaddr_in>
 }
 
 void endpoint::Endpoint::set_my_ip(const std::string &my_ip) {
+    LOG(ldebug, "MyIpAddress set to: " + get_my_ip());
     my_ip_ = my_ip;
 }
 
 void endpoint::Endpoint::retrieve_ip() {
+    const size_t COMPARE_LENGTH = 4;
     const char * interface = "eth0";
-    struct ifaddrs * ifAddrStruct=NULL;
-    struct ifaddrs * ifa=NULL;
-    void * tmpAddrPtr=NULL;
+    struct ifaddrs * ifAddrStruct = nullptr;
+    struct ifaddrs * ifa = nullptr;
+    void * tmpAddrPtr = nullptr;
 
     getifaddrs(&ifAddrStruct);
 
-    for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+    for (ifa = ifAddrStruct; ifa != nullptr; ifa = ifa->ifa_next) {
         if (!ifa->ifa_addr) {
             continue;
         }
@@ -114,19 +115,23 @@ void endpoint::Endpoint::retrieve_ip() {
             tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
             char addressBuffer[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
-            if (strcmp(interface, ifa->ifa_name) == 0) {
+            if (strncmp(interface, ifa->ifa_name, COMPARE_LENGTH) == 0) {
                 set_my_ip(addressBuffer);
             }
-            //printf("IP Address %s\n", ifa->ifa_name, addressBuffer);
-        } else if (ifa->ifa_addr->sa_family == AF_INET6) { // check it is IP6
+        } else if (ifa->ifa_addr->sa_family == AF_INET6) { // check if it is IP6
             // is a valid IP6 Address
             tmpAddrPtr=&((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr;
             char addressBuffer[INET6_ADDRSTRLEN];
             inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);
-            //printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+            // Don't do anything at the moment
+            /*if (strncmp(interface, ifa->ifa_name, COMPARE_LENGTH) == 0) {
+                set_my_ip(addressBuffer);
+            }*/
         }
     }
-    if (ifAddrStruct!=NULL) freeifaddrs(ifAddrStruct);
+    if (ifAddrStruct != nullptr){
+        freeifaddrs(ifAddrStruct);
+    }
 
 }
 

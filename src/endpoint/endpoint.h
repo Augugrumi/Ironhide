@@ -17,6 +17,7 @@
 #include "connectionentry.h"
 #include "../classifier/classifier.h"
 #include "../db/dbquery.h"
+#include "log.h"
 
 namespace endpoint {
 
