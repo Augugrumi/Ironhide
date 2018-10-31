@@ -8,6 +8,8 @@
 #include <ostream>
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
+#include <sys/socket.h>
+
 #include "egress.h"
 
 endpoint::Egress::Egress(uint16_t ext_port, uint16_t int_port) :
@@ -75,7 +77,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
     }
 
     sockstr.sin_family = AF_INET;
-    sockstr.sin_port = htons(ce.get_port_dst());
+    sockstr.sin_port = htons(get_external_port());//ce.get_port_dst());
     sockstr.sin_addr.s_addr = inet_addr(get_my_ip().c_str());//inet_addr(ce.get_ip_dst().c_str());
     socklen = (socklen_t) sizeof(sockstr);
 
@@ -85,21 +87,25 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
         exit(EXIT_FAILURE);
     }
 
+
+
     memset(msg, 0, BUFFER_SIZE);
 
     struct sockaddr_in server;
     server.sin_family      = AF_INET;
     server.sin_port        = htons(header.destination_port);
     server.sin_addr.s_addr = header.destination_address;
+    socklen_t serverlen = sizeof(server);
 
     if (sendto(sock, datagram, iph->tot_len , 0,
                (struct sockaddr *) &server, sizeof (server)) < 0) {
         perror("sendto failed");
         exit(EXIT_FAILURE);
     } else {
-        LOG(ldebug, "Packet Send");
+        LOG(ldebug, "Packet Send "/* + std::to_string(getsockname(raw_socket, (sockaddr*)&sockstr, &socklen))*/);
     }
 
+    LOG(ldebug, std::to_string(getsockname(raw_socket, (sockaddr*)&sockstr, &socklen)));
 
     /*socket = client.send_only(pkt + pkt_calc, // move pointer after headers
                               pkt_len - pkt_calc, // resize without considering headers
@@ -145,7 +151,8 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
                                 INT_TO_IP_C_STR(header.source_address),
                                 header.source_port,
                                 INT_TO_IP_C_STR(header.destination_address),
-                                header.destination_port, ttl, 1);
+                                header.destination_port,
+                                ttl, 1);
 
                 unsigned char formatted_pkt[received_len + SFC_HDR];
                 unsigned char* pkt_pointer = formatted_pkt;

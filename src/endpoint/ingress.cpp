@@ -307,6 +307,12 @@ void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
             perror("1. sendto()");
             exit(EXIT_FAILURE);
         }
+        delete_entry(ConnectionEntry(
+                INT_TO_IP(header.source_address),
+                INT_TO_IP(header.destination_address),
+                htons(header.source_port),
+                htons(header.destination_port), std::to_string(header.p_id),
+                db::protocol_type::UDP));
     };
 
     delete(args->pkt);

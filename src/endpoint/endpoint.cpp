@@ -98,7 +98,7 @@ void endpoint::Endpoint::set_my_ip(const std::string &my_ip) {
 }
 
 void endpoint::Endpoint::retrieve_ip() {
-    const char * interface = "wlan0";
+    const char * interface = "eth0";
     struct ifaddrs * ifAddrStruct=NULL;
     struct ifaddrs * ifa=NULL;
     void * tmpAddrPtr=NULL;
