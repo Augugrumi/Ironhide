@@ -234,7 +234,7 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
                                                         args->pkt_len,
                                                         flh, p);
 
-        printf("next ip %s\n", next_ip);
+        printf("next ip %s\n", path[0].get_address().c_str());
         printf("next port %d\n", next_port);
         client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
                                                         args->pkt_len + SFC_HDR,

@@ -97,6 +97,12 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
     server.sin_addr.s_addr = header.destination_address;
     socklen_t serverlen = sizeof(server);
 
+    /*if (bind(sock, (struct sockaddr*) &server, serverlen) == -1) {
+        perror("raw socket bind");
+        close(sock);
+        exit(EXIT_FAILURE);
+    }*/
+
     if (sendto(sock, datagram, iph->tot_len , 0,
                (struct sockaddr *) &server, sizeof (server)) < 0) {
         perror("sendto failed");
@@ -119,19 +125,19 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
 
     socklen_t server_addr_len = sizeof(server);
     char* sfcid;
-    char* next_ip;
+    const char* next_ip;
     uint16_t next_port;
     unsigned long ttl;
 
     do {
-        received_len = recv(raw_socket,buffer, BUFFER_SIZE,0);/*,0,
-                                (struct sockaddr *)&server,
-                                &(server_addr_len));*/
+        received_len = recvfrom(raw_socket,buffer, BUFFER_SIZE,0,
+                                (struct sockaddr *)&sockstr,
+                                &(socklen));
         printf("Message size: %d\n", received_len + SFC_HDR);
 
         if (received_len < 0) {
             perror("error receiving data");
-            //exit(EXIT_FAILURE);
+            exit(EXIT_FAILURE);
         } else if (received_len > 0) {
             sfcid = classifier_.classify_pkt(buffer, received_len);
             std::vector<db::utils::Address> path =
@@ -140,7 +146,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
             if (!path.empty()) {
                 // +2 because of ingress & egress
                 ttl = path.size() + 2;
-                next_ip = const_cast<char*>(path[0].get_address().c_str());
+                next_ip = path[0].get_address().c_str();
                 next_port = path[0].get_port();
 
                 auto resp_h = utils::PacketUtils::retrieve_ip_udp_header(buffer);
@@ -163,7 +169,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
 
                 client::udp::ClientUDP().send_and_wait_response(pkt_pointer,
                                                                 received_len + SFC_HDR,
-                                                                next_ip,
+                                                                path[0].get_address().c_str(),
                                                                 next_port);
 
             } else {
@@ -312,11 +318,12 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
             }
 
             if (received_len < BUFFER_SIZE) {
+                LOG(ltrace, "break");
                 break;
             }
-        }/* else {
+        } else {
             break;
-        }*/
+        }
     } while(1);
 
     /*do {
