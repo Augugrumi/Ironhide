@@ -11,6 +11,8 @@ void server::Server::stop() {
 
 void server::Server::signal_handler(int signal_number) {
     /* TODO: Put exit cleanup code here. */
+    LOG(lwarn, std::string("Interruption, code: ") +
+               std::to_string(signal_number));
     exit(0);
 }
 

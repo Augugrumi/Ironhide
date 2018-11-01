@@ -53,15 +53,11 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
     struct sockaddr_in sockstr;
     socklen_t socklen;
 
-    int retval = 0; /* the return value (give a look when an error happens)
-                     */
-
     /* no pointer to array!
      * >> It was like "a variable that contains an address -- and in this
      *    address begins an array of chars"! */
     /* now it is simple an array of chars :-)  */
     char msg[BUFFER_SIZE];
-    ssize_t msglen; /* return value from recv() */
 
     /* do not use IPPROTO_RAW to receive packets */
     if ((raw_socket = socket(AF_INET, SOCK_RAW, IPPROTO_UDP)) == -1) {
@@ -86,13 +82,6 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
     server.sin_family      = AF_INET;
     server.sin_port        = htons(header.destination_port);
     server.sin_addr.s_addr = header.destination_address;
-    socklen_t serverlen = sizeof(server);
-
-    /*if (bind(sock, (struct sockaddr*) &server, serverlen) == -1) {
-        perror("raw socket bind");
-        close(sock);
-        exit(EXIT_FAILURE);
-    }*/
 
     if (sendto(sock, datagram, iph->tot_len , 0,
                (struct sockaddr *) &server, sizeof (server)) < 0) {
@@ -114,9 +103,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
     ssize_t received_len;
     auto buffer = new unsigned char[BUFFER_SIZE];
 
-    socklen_t server_addr_len = sizeof(server);
     char* sfcid;
-    const char* next_ip;
     uint16_t next_port;
     unsigned long ttl;
 
@@ -135,10 +122,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
             if (!path.empty()) {
                 // +2 because of ingress & egress
                 ttl = path.size() + 2;
-                next_ip = path[0].get_address().c_str();
                 next_port = path[0].get_port();
-
-                auto resp_h = utils::PacketUtils::retrieve_ip_udp_header(buffer);
 
                 sfc_header flh =
                         utils::sfc_header::SFCUtilities::create_header(
@@ -184,7 +168,6 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
                                                   socket_fd socket) {
     LOG(ldebug, "manage_exiting tcp packets");
     auto header = utils::sfc_header::SFCUtilities::retrieve_header(pkt);
-    auto headers = utils::PacketUtils::retrieve_ip_tcp_header(pkt + SFC_HDR);
     const unsigned int pkt_calc = SFC_HDR + IP_TCP_H_LEN(pkt + SFC_HDR);
 
     unsigned char s[pkt_len - pkt_calc];

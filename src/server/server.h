@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include <functional>
 
+#include "log.h"
+
 #define BACKLOG 10
 
 namespace server {

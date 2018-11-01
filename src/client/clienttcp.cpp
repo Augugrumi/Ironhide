@@ -14,7 +14,6 @@ void client::tcp::ClientTCP::connect_to_server(const char* dst, uint16_t port) {
     struct addrinfo *result, *rp;
     fd_type sfd = - 1;
     int s;
-    ssize_t res = -1;
     bool send_flag = true;
 
     memset(&hints, 0, sizeof(struct addrinfo));

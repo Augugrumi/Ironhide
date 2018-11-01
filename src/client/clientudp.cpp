@@ -12,7 +12,7 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
                                                     uint16_t port) {
 
     struct addrinfo hints;
-    struct addrinfo *result, *rp, *address_used;
+    struct addrinfo *result, *rp;
     fd_type sfd = - 1;
     int s;
     ssize_t res = -1;
@@ -59,15 +59,10 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
             if (res > 0) {
                 send_flag = false;
                 LOG(ldebug, "Sent");
-                address_used = rp;
             }
         }
     }
 
-    char buffer[BUFFER_SIZE];
-    /*res = recvfrom(sfd, buffer, BUFFER_SIZE, 0,
-                   address_used->ai_addr, &(address_used->ai_addrlen));
-*/
     if (sfd > 0) {
         close(sfd);
     }
