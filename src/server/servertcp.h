@@ -23,6 +23,9 @@
 namespace server {
 namespace tcp {
 
+/**
+* Structure that contains data used for managing a packet received
+*/
 typedef struct {
     int new_socket_fd;
     struct sockaddr_in client_address;
@@ -30,7 +33,14 @@ typedef struct {
 
 class ServerTCP : public Server {
 public:
+    /**
+     * Constructor
+     * @param port Port on which the udp server waits for packets
+     */
     ServerTCP(uint16_t port);
+    /**
+     * Start server
+     */
     void run() override;
 };
 

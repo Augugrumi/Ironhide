@@ -12,9 +12,11 @@
 #include "config.h"
 
 namespace utils {
-
 namespace sfc_header {
 
+/**
+ * Class that represent the SFC header
+ */
 class SFCFixedLengthHeader {
 private:
     struct sfc_header header;
@@ -37,8 +39,8 @@ public:
 
     struct sfc_header get_header() const;
 };
-} // namespace sfcheader
 
+} // namespace sfcheader
 } // namespace utils
 
 #endif // IRONHIDE_SFC_FIXED_LENGTH_HEADER_H

@@ -16,6 +16,9 @@ namespace classifier {
 
 enum pkt_type {DEFAULT, TCP, UDP};
 
+/**
+ * Mock class of a real packet classifier
+ */
 class Classifier {
 public:
     class Mapper;
@@ -23,6 +26,9 @@ private:
     // TODO request sfcs in order to popolate the map
     std::map<Mapper, const char*> sfc_map;
 public:
+    /**
+     * Class that maps a packet type to a SFC id
+     */
     class Mapper {
     private:
         pkt_type type_;

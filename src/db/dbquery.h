@@ -21,9 +21,9 @@
 #include "utils/urlbuilder.h"
 
 namespace db{
-
 namespace query {
 namespace endpoint {
+
 const char* const SRC_IP = "ipSrc";
 const char* const DST_IP = "ipDst";
 const char* const SRC_PORT = "portSrc";
@@ -58,13 +58,30 @@ const char* const ROUTE_PREFIX = "routes/";
 enum endpoint_type{INGRESS_T, EGRESS_T};
 enum protocol_type{TCP, UDP};
 
+/**
+ * Class to perform queries to roulette
+ */
 class DBQuery {
 private:
     const utils::Address roulette_addr;
 
+    /**
+     * Checks if operation is performed successfully
+     * @return 1 -> the operation returns OK, 0 otherwise
+     */
     bool is_op_ok(const std::string&);
+    /**
+     * Make a request to roulette
+     * @param CURLcode code to check the request if is performed successfully
+     * @param lamda to manage the request
+     */
     bool handle_req(const CURLcode&, std::function<bool()>);
-
+    /**
+     * Template to create and handle CURL request
+     * @tparam T type of the request
+     * @param req function that perform the request
+     * @return result of the request
+     */
     template<typename T>
     static T curl_req_handle(std::function<T(CURL*)> req) {
         CURL* curl = init_local_res();
@@ -72,12 +89,36 @@ private:
         clear_local_res(curl);
         return res;
     }
+    /**
+     * Callback of the curl request
+     * @return size of the data
+     */
     static size_t curl_callback(void*, size_t, size_t, std::string*);
+    /**
+     * Sanitize the requests
+     * @return string that represent a JSON sanitize
+     */
     static std::string sanitize(const std::string&);
+    /**
+     * Initialize CURL
+     * @return pointer to curl initialized
+     */
     static CURL* init_local_res();
+    /**
+     * cleanup CURL resources
+     */
     static void clear_local_res(CURL*);
 public:
-    DBQuery(const std::string&, uint16_t port);
+    /**
+     * Constructor
+     * @param ip String that represent the IP of roulette
+     * @param port Port used by roulette
+     */
+    DBQuery(const std::string& ip, uint16_t port);
+    /**
+     * Constructor
+     * @param address of roulette
+     */
     DBQuery(const utils::Address&);
     ~DBQuery();
 
@@ -166,11 +207,30 @@ public:
 
     typedef Query Entry;
 
+    /**
+     * Create entry on roulette for endpoints
+     * @param query to add an entry to endpoints
+     * @return the result of the request
+     */
     std::string create_entry(const Query&);
     Entry get_entry(const char* id);
+    /**
+     * Delete an endpoint
+     * @param id id of the entry to delete
+     * @return the result of the request
+     */
     bool delete_entry(const char* id);
+    /**
+     * Update an endpoint
+     * @param query to update the entry
+     * @param endpoint data to update
+     * @return the result of the request
+     */
     bool update_endpoint(const Query&, const Endpoint&);
-
+    /**
+     * Retrieve the path of the packet
+     * @return Vector that represent the chain
+     */
     std::vector<utils::Address> get_route_list(uint32_t);
 };
 

@@ -5,12 +5,10 @@
 #include "endpoint/egress.h"
 
 #include "config.h"
-#include "db/dbquery.h"
-#include "log.h"
 
-// TODO Remove me - only for test purposes
-#include <vector>
-
+/**
+ * Help printing function
+ */
 void usage() {
     const char message[] =
             "\n"

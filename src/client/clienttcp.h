@@ -28,11 +28,34 @@ private:
     fd_type sock;
 
 public:
+    /**
+     * To connect to a remote server
+     * @param dst IP of server
+     * @param port Port used by the server
+     */
     void connect_to_server(const char* dst, uint16_t port);
+    /**
+     * Method to send a message and wait for the response
+     * @param message Message to send
+     * @param message_len Length of the message
+     * @param dst IP of destination
+     * @param port Port of the destination
+     */
     void send_and_receive(unsigned char* message, size_t message_len,
                           unsigned char* received, ssize_t received_len);
+    /**
+     * To access the socket used to send data
+     * @return the id of the socket file descriptor
+     */
     fd_type access_to_socket() const;
+    /**
+     * To access data of the connection
+     * @return sockaddr_in
+     */
     sockaddr_in access_to_sockaddr_in() const;
+    /**
+     * To gracefully close a connection
+     */
     void close_connection();
 };
 

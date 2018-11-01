@@ -9,6 +9,10 @@
 #include <ctime>
 
 namespace utils {
+
+/**
+ * Class used for logging purposes
+ */
 class Log {
 public:
     enum Level {

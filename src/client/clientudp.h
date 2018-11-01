@@ -24,8 +24,22 @@ namespace udp{
 
 class ClientUDP {
 public:
+    /**
+     * Method to send a message and wait for the response
+     * @param message Message to send
+     * @param message_len Length of the message
+     * @param dst IP of destination
+     * @param port Port of the destination
+     */
     void send_and_wait_response(unsigned char * message, size_t message_len,
                                 const char* dst, uint16_t port);
+    /**
+     * Method to send a message without waiting the response
+     * @param message Message to send
+     * @param message_len Length of the message
+     * @param dst IP of destination
+     * @param port Port of the destination
+     */
     fd_type send_only(unsigned char * message, size_t message_len,
                       const char* dst, uint16_t port);
 };

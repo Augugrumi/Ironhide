@@ -7,7 +7,10 @@
 
 #include <stdint.h>
 
-//https://tools.ietf.org/id/draft-ietf-sfc-nsh-17.html
+/**
+ * Struct that represent a sfc header
+ * reference: https://tools.ietf.org/id/draft-ietf-sfc-nsh-17.html
+ */
 
 struct sfc_header {
     /**************************BASE HEADER*************************/
