@@ -27,13 +27,6 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
 
     LOG(ldebug, "manage_exiting udp packets");
     auto header = utils::sfc_header::SFCUtilities::retrieve_header(pkt);
-    //client::udp::ClientUDP client;
-
-
-    printf("message to send\n");
-    for(int i = 0; i < pkt_len; i++)
-        printf("%x", *(pkt + i));
-    printf("\n");
 
     LOG(ldebug, "destination: addr: " + INT_TO_IP(header.destination_address));
     LOG(ldebug, "destination: port: " + std::to_string(htons(header.destination_port)));
@@ -82,12 +75,10 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
     socklen = (socklen_t) sizeof(sockstr);
 
     if (bind(raw_socket, (struct sockaddr*) &sockstr, socklen) == -1) {
-        perror("raw socket bind");
+        LOG(lfatal, "raw socket bind");
         close(raw_socket);
         exit(EXIT_FAILURE);
     }
-
-
 
     memset(msg, 0, BUFFER_SIZE);
 
@@ -133,10 +124,8 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
         received_len = recvfrom(raw_socket,buffer, BUFFER_SIZE,0,
                                 (struct sockaddr *)&sockstr,
                                 &(socklen));
-        printf("Message size: %d\n", received_len + SFC_HDR);
-
         if (received_len < 0) {
-            perror("error receiving data");
+            LOG(lfatal, "error receiving data");
             exit(EXIT_FAILURE);
         } else if (received_len > 0) {
             sfcid = classifier_.classify_pkt(buffer, received_len);
@@ -198,84 +187,40 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
     auto headers = utils::PacketUtils::retrieve_ip_tcp_header(pkt + SFC_HDR);
     const unsigned int pkt_calc = SFC_HDR + IP_TCP_H_LEN(pkt + SFC_HDR);
 
-    printf("message to send\n");
-    for(int i = pkt_calc; i < pkt_len; i++)
-        printf("%x", *(pkt + i));
-    printf("\n");
-
-    for(int i = pkt_calc; i < pkt_len; i++)
-        printf("%x", *(pkt + i));
-    printf("\n");
-
     unsigned char s[pkt_len - pkt_calc];
     std::strncpy((char*)s, (char*)(pkt + pkt_calc), pkt_len - pkt_calc);
-    for(int i = 0; i < pkt_len - pkt_calc; i++)
-        printf("%x", *(s + i));
-    printf("\n");
 
-    printf("%s\n", INT_TO_IP(headers.first.daddr).c_str());
-    printf("%d\n", htons(headers.second.dest));
-
-    LOG(ldebug, "1");
     if (socket == -1) {
         client::tcp::ClientTCP client;
-        LOG(ldebug, "a");
         LOG(ldebug, utils::PacketUtils::int_to_ip(header.destination_address));
         LOG(ldebug, std::to_string(htons(header.destination_port)));
         client.connect_to_server(INT_TO_IP_C_STR(header.destination_address),
                                  htons(header.destination_port));
-        LOG(ldebug, "b");
         socket = client.access_to_socket();
         sockaddr_in sockin = client.access_to_sockaddr_in();
-        LOG(ldebug, "c");
         update_entry(ce, socket, sockin, db::endpoint_type::EGRESS_T);
-        LOG(ldebug, "d");
     }
 
-    printf("message to send\n");
-    for(int i = 0; i < pkt_len; i++)
-        printf("%x", *(pkt + i));
-    printf("\n");
-    printf("%s\n", INT_TO_IP(headers.first.daddr).c_str());
-    printf("%d\n", htons(headers.second.dest));
-
-    LOG(ldebug, "2");
     LOG(ldebug, std::to_string(pkt_len));
-    //size_t iTotalElement = *(&pkt + 1) - pkt;
 
     fcntl(socket, F_GETFL, 0);
 
-    //unsigned char* c;
-    //client.send_and_receive(s, pkt_len - pkt_calc + 1, c, 0);
-
     unsigned char received[BUFFER_SIZE];
-
-    for (int i = 0; i < pkt_len - pkt_calc; i++)
-        printf("%x", *(s + i));
-    printf("\n");
 
     ssize_t received_len = 0;
     send(socket, s, pkt_len - pkt_calc, 0);
     char* sfcid;
-    char* next_ip;
     uint16_t next_port;
     unsigned long ttl;
     do {
-        printf("Hello message sent\n");
         received_len = read(socket , received, BUFFER_SIZE);
-        for (int i = 0; i < received_len; i++)
-            printf("%x", *(received + i));
-        printf("\n");
         if (received_len < 0) {
-            perror("error receiving data");
+            LOG(lfatal, "error receiving data");
             exit(EXIT_FAILURE);
         } else if (received_len > 0) {
-            LOG(ldebug, "6");
             sfcid = classifier_.classify_pkt(received, received_len);
-            LOG(ldebug, "7");
             std::vector<db::utils::Address> path =
                     roulette_->get_route_list(atoi(sfcid));
-            LOG(ldebug, "8");
 
             for (db::utils::Address a : path) {
                 LOG(ldebug, "address:" + a.get_address());
@@ -287,7 +232,6 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
                 ttl = path.size() + 2;
                 db::utils::Address a = path.at(0);
                 next_port = path[0].get_port();
-                LOG(ldebug, "9");
                 sfc_header flh =
                         utils::sfc_header::SFCUtilities::create_header(
                                 atoi(sfcid), 0,
@@ -297,12 +241,10 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
                                 header.destination_port, ttl, 1);
                 unsigned char formatted_pkt[received_len + SFC_HDR];
                 unsigned char* pkt_pointer = formatted_pkt;
-                LOG(ldebug, "10");
                 utils::sfc_header::SFCUtilities::prepend_header(received,
                                                                 received_len,
                                                                 flh,
                                                                 pkt_pointer);
-                LOG(ldebug, "11");
                 LOG(ldebug, "next ip   " + std::string(a.get_address()));
                 LOG(ldebug, "next port " + std::to_string(next_port));
                 client::udp::ClientUDP().send_and_wait_response(pkt_pointer,
@@ -313,7 +255,7 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
 
 
             } else {
-                LOG(ldebug, "no route available, discarding packages");
+                LOG(lwarn, "no route available, discarding packages");
                 break;
             }
 
@@ -326,101 +268,11 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
         }
     } while(1);
 
-    /*do {
-        printf("entering do while");
-        received_len = read(socket , received, BUFFER_SIZE);
-
-        for (int i = 0; i < received_len; i++)
-            printf("%x", *(received + i));
-        printf("\n");
-
-        if (received_len < BUFFER_SIZE) {
-            break;
-        }
-
-    } while(received_len > 0);*/
-
-    //exit(EXIT_FAILURE);
-
-    /*send(socket, s, pkt_len - pkt_calc, 0);
-
-    LOG(ldebug, "3");
-    //ssize_t received_len = 0;
-    unsigned char buffer[BUFFER_SIZE];
-    //char* sfcid;
-    //char* next_ip;
-    //uint16_t next_port;
-    //unsigned long ttl;
-
-    do {
-        LOG(ldebug, "4");
-        received_len = read(socket, buffer, BUFFER_SIZE);
-        printf("received ");
-        for(int i = 0; i < received_len; i++)
-            printf("%x", buffer);
-        printf("\n");
-        LOG(ldebug, "5");
-        if (received_len < 0) {
-            perror("error receiving data");
-            exit(EXIT_FAILURE);
-        } else if (received_len > 0) {
-            LOG(ldebug, "6");
-            sfcid = classifier_.classify_pkt(buffer, received_len);
-            LOG(ldebug, "7");
-            std::vector<db::utils::Address> path =
-                    roulette_->get_route_list(atoi(sfcid));
-            LOG(ldebug, "8");
-
-            if (!path.empty()) {
-                // +2 because of ingress & egress
-                ttl = path.size() + 2;
-                next_ip = const_cast<char *>(path[0].get_address().c_str());
-                next_port = path[0].get_port();
-                LOG(ldebug, "9");
-                sfc_header flh =
-                        utils::sfc_header::SFCUtilities::create_header(
-                                atoi(sfcid), 0,
-                                INT_TO_IP_C_STR(header.source_address),
-                                header.source_port,
-                                INT_TO_IP_C_STR(header.destination_address),
-                                header.destination_port, ttl, 1);
-                unsigned char formatted_pkt[pkt_len + SFC_HDR];
-                unsigned char* pkt_pointer = formatted_pkt;
-                LOG(ldebug, "10");
-                utils::sfc_header::SFCUtilities::prepend_header(buffer,
-                                                                pkt_len,
-                                                                flh,
-                                                                pkt_pointer);
-                LOG(ldebug, "11");
-                LOG(ldebug, "next ip   " + std::string(next_ip));
-                LOG(ldebug, "next port " + std::to_string(next_port));
-                client::udp::ClientUDP().send_and_wait_response(pkt_pointer,
-                                                                pkt_len + SFC_HDR,
-                                                                next_ip,
-                                                                next_port);
-
-
-
-            } else {
-                LOG(ldebug, "no route available, discarding packages");
-            }
-        }
-
-        if (received_len < BUFFER_SIZE) {
-            break;
-        }
-
-    }  while(1);*/
-
-    //free(pkt);
-    //free(buffer);
-
     LOG(ldebug, "exit managing TCP exiting pkts");
 
     // TODO think when closing socket
 }
 
-#include <stdio.h>
 void endpoint::Egress::manage_pkt_from_chain(void * mngmnt_args) {
     LOG(ldebug, "manage_pkt_from_chain");
     auto args = (server::udp::udp_pkt_mngmnt_args *)mngmnt_args;

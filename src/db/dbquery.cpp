@@ -266,8 +266,8 @@ std::vector<db::utils::Address> db::DBQuery::get_route_list(uint32_t p_id) {
 
 bool db::DBQuery::handle_req(const CURLcode& res, std::function<bool()> cb) {
     if(res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                curl_easy_strerror(res));
+        LOG(lwarn, std::string("curl_easy_perform() failed: ") +
+                   std::string(curl_easy_strerror(res)));
         throw db::exceptions::ios_base::failure("Error while making the request"
                                             "to route backend");
     } else {

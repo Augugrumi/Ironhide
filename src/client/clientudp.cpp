@@ -30,11 +30,14 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
     s = getaddrinfo(dst, std::to_string(port).c_str(), &hints, &result);
 
     if (s != 0) {
-        perror("Error getting info for destination");
-        if (s == EAI_SYSTEM)
-            fprintf(stderr, "looking up www.example.com: %s\n", strerror(errno));
-        else
-            fprintf(stderr, "looking up www.example.com: %s\n", gai_strerror(s));
+        LOG(lfatal, "Error getting info for destination");
+        if (s == EAI_SYSTEM) {
+            LOG(lfatal, std::string("getaddrinfo: ") +
+                        std::string(strerror(errno)));
+        } else {
+            LOG(lfatal, std::string("getaddrinfo: ") +
+                        std::string(gai_strerror(s)));
+        }
         exit(EXIT_FAILURE);
     }
 

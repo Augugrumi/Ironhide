@@ -2,6 +2,7 @@
 // Created by zanna on 05/10/18.
 //
 
+#include <log.h>
 #include "clienttcp.h"
 
 void client::tcp::ClientTCP::connect_to_server(const char* dst, uint16_t port) {
@@ -35,11 +36,14 @@ void client::tcp::ClientTCP::connect_to_server(const char* dst, uint16_t port) {
     s = getaddrinfo(dst, std::to_string(port).c_str(), &hints, &result);
 
     if (s != 0) {
-        perror("Error getting info for destination");
-        if (s == EAI_SYSTEM)
-            fprintf(stderr, "looking up www.example.com: %s\n", strerror(errno));
-        else
-            fprintf(stderr, "looking up www.example.com: %s\n", gai_strerror(s));
+        LOG(lfatal, "Error getting info for destination");
+        if (s == EAI_SYSTEM) {
+            LOG(lfatal, std::string("getaddrinfo: ") +
+                        std::string(strerror(errno)));
+        } else {
+            LOG(lfatal, std::string("getaddrinfo: ") +
+                        std::string(gai_strerror(s)));
+        }
         exit(EXIT_FAILURE);
     }
 
@@ -67,21 +71,13 @@ void client::tcp::ClientTCP::send_and_receive(unsigned char* message,
                                               ssize_t received_len) {
     received = new unsigned char[BUFFER_SIZE];
 
-    for (int i = 0; i < message_len; i++)
-        printf("%x", *(message + i));
-    printf("\n");
-
     send(sock , message , message_len, 0);
-    printf("Hello message sent\n");
+
     received_len = read(sock , received, BUFFER_SIZE);
     if (received_len < -1) {
         perror("error receiving data");
         exit(EXIT_FAILURE);
     }
-
-    for (int i = 0; i < received_len; i++)
-        printf("%x", *(received + i));
-    printf("\n");
 }
 
 client::fd_type client::tcp::ClientTCP::access_to_socket() const {

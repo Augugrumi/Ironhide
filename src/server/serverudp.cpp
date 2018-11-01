@@ -65,11 +65,6 @@ void server::udp::ServerUDP::run() {
         args->pkt_len = pkt_len;
         args->socket_fd = socket_fd;
 
-        printf("serverudpppp: ");
-        for (int i = 0; i < args->pkt_len; i++)
-            printf("%x", *(args->pkt + i));
-        printf("\n");
-
         GO_ASYNC(std::bind<void>(manager_, args));
     }
 
