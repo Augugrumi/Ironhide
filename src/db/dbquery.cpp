@@ -1,18 +1,14 @@
-//
-// Created by zanna on 05/10/18.
-//
-
 #include "dbquery.h"
 
 // Static methods
-std::string db::DBQuery::sanitize(const std::string& to_sanitize) {
+std::string db::DBQuery::sanitize(const std::string &to_sanitize) {
     std::string res(to_sanitize);
     std::replace(res.begin(), res.end(), '\0', ' ');
     return res;
 }
 
-CURL* db::DBQuery::init_local_res() {
-    CURL* curl = curl_easy_init();
+CURL *db::DBQuery::init_local_res() {
+    CURL *curl = curl_easy_init();
     if (curl == nullptr) {
         perror("Impossible to properly init curl");
         exit(EXIT_FAILURE);
@@ -20,29 +16,29 @@ CURL* db::DBQuery::init_local_res() {
     return curl;
 }
 
-void db::DBQuery::clear_local_res(CURL* curl) {
+void db::DBQuery::clear_local_res(CURL *curl) {
     curl_easy_cleanup(curl);
 }
 
-size_t db::DBQuery::curl_callback(void* ptr, size_t size,
-                                  size_t nmemb, std::string* data) {
-    data->append(reinterpret_cast<char*>(ptr), size * nmemb);
+size_t db::DBQuery::curl_callback(void *ptr, size_t size,
+                                  size_t nmemb, std::string *data) {
+    data->append(reinterpret_cast<char *>(ptr), size * nmemb);
     return size * nmemb;
 }
 
 // End static methods
 
 // DBQuery
-db::DBQuery::DBQuery(const utils::Address& r_a) : roulette_addr(r_a) {
+db::DBQuery::DBQuery(const utils::Address &r_a) : roulette_addr(r_a) {
     curl_global_init(CURL_GLOBAL_ALL);
 }
 
-db::DBQuery::DBQuery(const std::string& address, uint16_t port)
+db::DBQuery::DBQuery(const std::string &address, uint16_t port)
         : db::DBQuery(utils::Address(address, port)) {}
 
-std::string db::DBQuery::create_entry(const Query& query) {
-    std::function<std::string(CURL*)> real_req = [this, query](CURL* curl) {
-        struct curl_slist* header = nullptr;
+std::string db::DBQuery::create_entry(const Query &query) {
+    std::function<std::string(CURL *)> real_req = [this, query](CURL *curl) {
+        struct curl_slist *header = nullptr;
         std::string req_data_res;
         std::string req_addr = utils::URLBuilder()
                 .set_address(roulette_addr)
@@ -58,7 +54,8 @@ std::string db::DBQuery::create_entry(const Query& query) {
         curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
         //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
+                         db::DBQuery::curl_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
         //curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_query.c_str());
@@ -68,8 +65,8 @@ std::string db::DBQuery::create_entry(const Query& query) {
 
         curl_slist_free_all(header);
         if (handle_req(
-                    res,
-                    std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
+                res,
+                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
 
             Json::CharReaderBuilder builder;
             std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
@@ -91,9 +88,9 @@ std::string db::DBQuery::create_entry(const Query& query) {
     return curl_req_handle(real_req);
 }
 
-bool db::DBQuery::update_endpoint(const Query& query, const Endpoint& to_add) {
-    std::function<bool(CURL*)> real_req = [this, query, to_add](CURL* curl) {
-        struct curl_slist* header = nullptr;
+bool db::DBQuery::update_endpoint(const Query &query, const Endpoint &to_add) {
+    std::function<bool(CURL *)> real_req = [this, query, to_add](CURL *curl) {
+        struct curl_slist *header = nullptr;
         std::string req_data_res;
         std::string q = query.to_url();
         std::string req_addr = utils::URLBuilder()
@@ -111,22 +108,24 @@ bool db::DBQuery::update_endpoint(const Query& query, const Endpoint& to_add) {
         curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
         //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
+                         db::DBQuery::curl_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
         //curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data.c_str());
 
         CURLcode res = curl_easy_perform(curl);
         return handle_req(
-                    res,
-                    std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
+                res,
+                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
     };
 
     return curl_req_handle<bool>(real_req);
 }
 
-db::DBQuery::Entry db::DBQuery::get_entry(const char* id) {
-    std::function<db::DBQuery::Entry(CURL*)> real_req = [this, id](CURL* curl) {
+db::DBQuery::Entry db::DBQuery::get_entry(const char *id) {
+    std::function<db::DBQuery::Entry(CURL *)> real_req = [this, id](
+            CURL *curl) {
         const std::string req_addr = utils::URLBuilder()
                 .set_address(roulette_addr)
                 .add_path(ENDPOINT_PREFIX)
@@ -136,13 +135,14 @@ db::DBQuery::Entry db::DBQuery::get_entry(const char* id) {
 
         curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
+                         db::DBQuery::curl_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
 
         CURLcode res = curl_easy_perform(curl);
         if (handle_req(
-                    res,
-                    std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
+                res,
+                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
 
             Json::CharReaderBuilder builder;
             std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
@@ -156,7 +156,8 @@ db::DBQuery::Entry db::DBQuery::get_entry(const char* id) {
 
             Json::Value content = response[reply::CONTENT];
 
-            protocol_type prt = content[query::endpoint::PROTOCOL] == "tcp" ? TCP : UDP;
+            protocol_type prt =
+                    content[query::endpoint::PROTOCOL] == "tcp" ? TCP : UDP;
             Endpoint ingress(content[query::endpoint::INGRESS_IP].asString(),
                              content[query::endpoint::SOCK_INGRESS].asString(),
                              INGRESS_T);
@@ -186,8 +187,8 @@ db::DBQuery::Entry db::DBQuery::get_entry(const char* id) {
 
 }
 
-bool db::DBQuery::delete_entry(const char* id) {
-    std::function<bool(CURL*)> real_req = [this, id](CURL* curl) {
+bool db::DBQuery::delete_entry(const char *id) {
+    std::function<bool(CURL *)> real_req = [this, id](CURL *curl) {
         const std::string req_addr = utils::URLBuilder()
                 .set_address(roulette_addr)
                 .add_path(ENDPOINT_PREFIX)
@@ -199,13 +200,14 @@ bool db::DBQuery::delete_entry(const char* id) {
 
         curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
+                         db::DBQuery::curl_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
 
         CURLcode res = curl_easy_perform(curl);
         return handle_req(
-                    res,
-                    std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
+                res,
+                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res));
     };
 
     return curl_req_handle(real_req);
@@ -213,7 +215,8 @@ bool db::DBQuery::delete_entry(const char* id) {
 
 
 std::vector<db::utils::Address> db::DBQuery::get_route_list(uint32_t p_id) {
-    std::function<std::vector<db::utils::Address>(CURL*)> real_req = [this, p_id] (CURL* curl) {
+    std::function<std::vector<db::utils::Address>(
+            CURL *)> real_req = [this, p_id](CURL *curl) {
 
         const std::string req_addr = utils::URLBuilder()
                 .set_address(roulette_addr)
@@ -225,13 +228,14 @@ std::vector<db::utils::Address> db::DBQuery::get_route_list(uint32_t p_id) {
 
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
         curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, db::DBQuery::curl_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
+                         db::DBQuery::curl_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
 
         CURLcode res = curl_easy_perform(curl);
         if (handle_req(
-                    res,
-                    std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
+                res,
+                std::bind<bool>(&db::DBQuery::is_op_ok, this, req_data_res))) {
 
             LOG(ltrace, "after if");
             Json::CharReaderBuilder builder;
@@ -251,9 +255,9 @@ std::vector<db::utils::Address> db::DBQuery::get_route_list(uint32_t p_id) {
             /*for (Json::Value::ArrayIndex i = 0; i != response.size(); i++) {
                 LOG(ltrace, response[i]["port"].asString());
             }*/
-            for (const Json::Value& address : content[query::route::SI]) {
+            for (const Json::Value &address : content[query::route::SI]) {
                 utils::Address to_add(address[query::route::ADDRESS].asString(),
-                        address[query::route::PORT].asUInt());
+                                      address[query::route::PORT].asUInt());
                 routes.push_back(to_add);
             }
             return routes;
@@ -264,18 +268,18 @@ std::vector<db::utils::Address> db::DBQuery::get_route_list(uint32_t p_id) {
     return curl_req_handle(real_req);
 }
 
-bool db::DBQuery::handle_req(const CURLcode& res, std::function<bool()> cb) {
-    if(res != CURLE_OK) {
+bool db::DBQuery::handle_req(const CURLcode &res, std::function<bool()> cb) {
+    if (res != CURLE_OK) {
         LOG(lwarn, std::string("curl_easy_perform() failed: ") +
                    std::string(curl_easy_strerror(res)));
         throw db::exceptions::ios_base::failure("Error while making the request"
-                                            "to route backend");
+                                                "to route backend");
     } else {
         return cb();
     }
 }
 
-bool db::DBQuery::is_op_ok(const std::string& req) {
+bool db::DBQuery::is_op_ok(const std::string &req) {
     LOG(ldebug, "Request performed successfully");
 
     Json::CharReaderBuilder builder;
@@ -293,7 +297,7 @@ bool db::DBQuery::is_op_ok(const std::string& req) {
         return response[reply::RESULT] == reply::OK;
     } else {
         throw db::exceptions::ios_base::failure("Error while parsing the JSON"
-                                            " reply");
+                                                " reply");
     }
 }
 
@@ -303,10 +307,10 @@ db::DBQuery::~DBQuery() {
 // End DBQuery
 
 // Endpoint
-db::DBQuery::Endpoint::Endpoint(const std::string& new_ip,
-                                const std::string& new_socket_id,
+db::DBQuery::Endpoint::Endpoint(const std::string &new_ip,
+                                const std::string &new_socket_id,
                                 endpoint_type end_type)
-    : ip(new_ip), socket_id(new_socket_id), type_of_proxy(end_type) {
+        : ip(new_ip), socket_id(new_socket_id), type_of_proxy(end_type) {
 }
 
 std::string db::DBQuery::Endpoint::get_ip() const {
@@ -336,30 +340,30 @@ std::string db::DBQuery::Endpoint::to_json() const {
 // End Endpoint
 
 // Query
-db::DBQuery::Query::Query(const std::string& new_item_id,
-                          const std::string& new_ip_src,
-                          const std::string& new_ip_dst,
+db::DBQuery::Query::Query(const std::string &new_item_id,
+                          const std::string &new_ip_src,
+                          const std::string &new_ip_dst,
                           uint16_t new_port_src,
                           uint16_t new_port_dst,
                           db::protocol_type type_of_protocol,
-                          const std::string& new_id_sfc,
-                          const std::vector<Endpoint>& new_endpoints)
-    : item_id(new_item_id), ip_src(new_ip_src), ip_dst(new_ip_dst),
-      port_src(new_port_src), port_dst(new_port_dst), prt(type_of_protocol),
-      id_sfc(new_id_sfc), endpoints(new_endpoints) {
+                          const std::string &new_id_sfc,
+                          const std::vector<Endpoint> &new_endpoints)
+        : item_id(new_item_id), ip_src(new_ip_src), ip_dst(new_ip_dst),
+          port_src(new_port_src), port_dst(new_port_dst), prt(type_of_protocol),
+          id_sfc(new_id_sfc), endpoints(new_endpoints) {
 }
 
-db::DBQuery::Query::Query(const std::string& new_item_id,
-                          const std::string& new_ip_src,
-                          const std::string& new_ip_dst,
+db::DBQuery::Query::Query(const std::string &new_item_id,
+                          const std::string &new_ip_src,
+                          const std::string &new_ip_dst,
                           uint16_t new_port_src,
                           uint16_t new_port_dst,
                           db::protocol_type type_of_protocol,
-                          const std::string& new_id_sfc,
-                          const db::endpoint_type & type)
-    : item_id(new_item_id), ip_src(new_ip_src), ip_dst(new_ip_dst),
-      port_src(new_port_src), port_dst(new_port_dst), prt(type_of_protocol),
-      id_sfc(new_id_sfc), endpoints(std::vector<Endpoint>()), type_(type) {}
+                          const std::string &new_id_sfc,
+                          const db::endpoint_type &type)
+        : item_id(new_item_id), ip_src(new_ip_src), ip_dst(new_ip_dst),
+          port_src(new_port_src), port_dst(new_port_dst), prt(type_of_protocol),
+          id_sfc(new_id_sfc), endpoints(std::vector<Endpoint>()), type_(type) {}
 
 std::string db::DBQuery::Query::get_ip_src() const {
     return ip_src;
@@ -385,17 +389,20 @@ std::string db::DBQuery::Query::get_id_sfc() const {
     return id_sfc;
 }
 
-std::vector<db::DBQuery::Endpoint> db::DBQuery::Query::get_all_endpoints() const {
+std::vector<db::DBQuery::Endpoint>
+db::DBQuery::Query::get_all_endpoints() const {
     return endpoints;
 }
 
-db::DBQuery::Endpoint db::DBQuery::Query::get_endpoint(db::endpoint_type endpoint) const {
-    for(auto e : endpoints) {
+db::DBQuery::Endpoint
+db::DBQuery::Query::get_endpoint(db::endpoint_type endpoint) const {
+    for (auto e : endpoints) {
         if (e.get_endpoint_typology() == endpoint) {
             return e;
         }
     }
-    throw db::exceptions::logic_failure::endpoint_not_found("Endpoint not found");
+    throw db::exceptions::logic_failure::endpoint_not_found(
+            "Endpoint not found");
 }
 
 // Pay attention! Here item_id is not included in the JSON file.
@@ -407,7 +414,7 @@ std::string db::DBQuery::Query::to_json() const {
     json_res[query::endpoint::SRC_PORT] = port_src;
     json_res[query::endpoint::DST_PORT] = port_dst;
     json_res[query::endpoint::SFC_ID] = id_sfc;
-    (prt == protocol_type::TCP)? json_res[query::endpoint::PROTOCOL] = "tcp" :
+    (prt == protocol_type::TCP) ? json_res[query::endpoint::PROTOCOL] = "tcp" :
             json_res[query::endpoint::PROTOCOL] = "udp";
     for (auto e : endpoints) {
         if (e.get_endpoint_typology() == INGRESS_T) {
@@ -423,14 +430,14 @@ std::string db::DBQuery::Query::to_json() const {
 }
 
 std::string db::DBQuery::Query::to_url() const {
-    utils::URLBuilder query_builder =  utils::URLBuilder()
+    utils::URLBuilder query_builder = utils::URLBuilder()
             .add_path(ENDPOINT_PREFIX);
 
     if (!endpoints.empty()) {
         if (endpoints.size() == 1) {
             endpoints[0].get_endpoint_typology() == INGRESS_T ?
-                        query_builder.add_path(query::endpoint::EGRESS) :
-                        query_builder.add_path(query::endpoint::INGRESS);
+            query_builder.add_path(query::endpoint::EGRESS) :
+            query_builder.add_path(query::endpoint::INGRESS);
 
             query_builder.add_path(ip_src)
                     .add_path(ip_dst)
@@ -438,8 +445,8 @@ std::string db::DBQuery::Query::to_url() const {
                     .add_path(std::to_string(port_dst))
                     .add_path(id_sfc)
                     .add_path(
-                        prt == TCP ? "tcp" : "udp"
-                        )
+                            prt == TCP ? "tcp" : "udp"
+                    )
                     .add_path(endpoints[0].get_ip())
                     .add_path(endpoints[0].get_socket_id());
 
@@ -451,7 +458,7 @@ std::string db::DBQuery::Query::to_url() const {
                                                              "I use?");
         }
     } else {
-        query_builder.add_path(type_ == db::endpoint_type::INGRESS_T?
+        query_builder.add_path(type_ == db::endpoint_type::INGRESS_T ?
                                "ingress" : "egress")
                 .add_path(ip_src)
                 .add_path(ip_dst)
@@ -467,35 +474,50 @@ std::string db::DBQuery::Query::to_url() const {
 // End Query
 
 // Query::Builder
-db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_item_id(const std::string& item_id) {
+db::DBQuery::Query::Builder &
+db::DBQuery::Query::Builder::set_item_id(const std::string &item_id) {
     this->item_id = item_id;
     return *this;
 }
-db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_ip_src(const std::string& ip_src) {
+
+db::DBQuery::Query::Builder &
+db::DBQuery::Query::Builder::set_ip_src(const std::string &ip_src) {
     this->ip_src = ip_src;
     return *this;
 }
-db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_ip_dst(const std::string& ip_dst) {
+
+db::DBQuery::Query::Builder &
+db::DBQuery::Query::Builder::set_ip_dst(const std::string &ip_dst) {
     this->ip_dst = ip_dst;
     return *this;
 }
-db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_port_src(uint16_t port_src) {
+
+db::DBQuery::Query::Builder &
+db::DBQuery::Query::Builder::set_port_src(uint16_t port_src) {
     this->port_src = port_src;
     return *this;
 }
-db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_port_dst(uint16_t port_dst) {
+
+db::DBQuery::Query::Builder &
+db::DBQuery::Query::Builder::set_port_dst(uint16_t port_dst) {
     this->port_dst = port_dst;
     return *this;
 }
-db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_protocol(db::protocol_type prt) {
+
+db::DBQuery::Query::Builder &
+db::DBQuery::Query::Builder::set_protocol(db::protocol_type prt) {
     this->prt = prt;
     return *this;
 }
-db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_id_sfc(const std::string& id_sfc) {
+
+db::DBQuery::Query::Builder &
+db::DBQuery::Query::Builder::set_id_sfc(const std::string &id_sfc) {
     this->id_sfc = id_sfc;
     return *this;
 }
-db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_endpoint(const Endpoint& endpoint) {
+
+db::DBQuery::Query::Builder &
+db::DBQuery::Query::Builder::set_endpoint(const Endpoint &endpoint) {
     for (auto it = endpoints.begin(); it != endpoints.end(); it++) {
         if (it->get_endpoint_typology() == endpoint.get_endpoint_typology()) {
             endpoints.erase(it);
@@ -508,7 +530,7 @@ db::DBQuery::Query::Builder& db::DBQuery::Query::Builder::set_endpoint(const End
 }
 
 db::DBQuery::Query::Builder &
-db::DBQuery::Query::Builder::set_endpoint_type(const db::endpoint_type & type) {
+db::DBQuery::Query::Builder::set_endpoint_type(const db::endpoint_type &type) {
     type_ = type;
     return *this;
 }
@@ -516,21 +538,21 @@ db::DBQuery::Query::Builder::set_endpoint_type(const db::endpoint_type & type) {
 db::DBQuery::Query db::DBQuery::Query::Builder::build() const {
     if (!endpoints.empty())
         return Query(item_id,
-                 ip_src,
-                 ip_dst,
-                 port_src,
-                 port_dst,
-                 prt,
-                 id_sfc,
-                 endpoints);
+                     ip_src,
+                     ip_dst,
+                     port_src,
+                     port_dst,
+                     prt,
+                     id_sfc,
+                     endpoints);
     else
         return Query(item_id,
-              ip_src,
-              ip_dst,
-              port_src,
-              port_dst,
-              prt,
-              id_sfc,
-              type_);
+                     ip_src,
+                     ip_dst,
+                     port_src,
+                     port_dst,
+                     prt,
+                     id_sfc,
+                     type_);
 }
 // End Query::Builder

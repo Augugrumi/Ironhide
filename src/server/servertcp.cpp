@@ -1,16 +1,12 @@
-//
-// Created by zanna on 04/10/18.
-//
-
 #include "servertcp.h"
 
-server::tcp::ServerTCP::ServerTCP(uint16_t port) : Server(port){}
+server::tcp::ServerTCP::ServerTCP(uint16_t port) : Server(port) {}
 
 void server::tcp::ServerTCP::run() {
     stopped_ = false;
     int socket_fd, new_socket_fd;
     struct sockaddr_in address{};
-    tcp_pkt_mngmnt_args* args;
+    tcp_pkt_mngmnt_args *args;
     socklen_t client_address_len;
 
     /* Initialise IPv4 address. */
@@ -29,7 +25,7 @@ void server::tcp::ServerTCP::run() {
     setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
     /* Bind address to socket. */
-    if (bind(socket_fd, (struct sockaddr *)&address, sizeof address) == -1) {
+    if (bind(socket_fd, (struct sockaddr *) &address, sizeof address) == -1) {
         perror("bind");
         exit(1);
     }
@@ -47,7 +43,7 @@ void server::tcp::ServerTCP::run() {
         /* TODO: malloc'ing before accepting a connection causes only one small
          * memory when the program exits. It can be safely ignored.
          */
-        args = (tcp_pkt_mngmnt_args*)malloc(sizeof *args);
+        args = (tcp_pkt_mngmnt_args *) malloc(sizeof *args);
         if (!args) {
             perror("malloc");
             continue;
@@ -55,7 +51,9 @@ void server::tcp::ServerTCP::run() {
 
         /* Accept connection to client. */
         client_address_len = sizeof args->client_address;
-        new_socket_fd = accept(socket_fd, (struct sockaddr *)&args->client_address, &client_address_len);
+        new_socket_fd = accept(socket_fd,
+                               (struct sockaddr *) &args->client_address,
+                               &client_address_len);
 
         if (new_socket_fd == -1) {
             perror("accept");

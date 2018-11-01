@@ -1,7 +1,3 @@
-//
-// Created by zanna on 04/10/18.
-//
-
 #ifndef IRONHIDE_SERVERTCP_H
 #define IRONHIDE_SERVERTCP_H
 

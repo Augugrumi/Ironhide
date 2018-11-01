@@ -1,7 +1,3 @@
-//
-// Created by zanna on 05/10/18.
-//
-
 #ifndef IRONHIDE_CLIENTUDP_H
 #define IRONHIDE_CLIENTUDP_H
 

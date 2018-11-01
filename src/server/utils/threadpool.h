@@ -1,7 +1,3 @@
-//
-// Created by zanna on 04/10/18.
-//
-
 #ifndef IRONHIDE_THREADPOOL_H
 #define IRONHIDE_THREADPOOL_H
 

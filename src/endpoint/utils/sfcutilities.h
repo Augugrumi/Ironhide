@@ -1,7 +1,3 @@
-//
-// Created by zanna on 28/09/18.
-//
-
 #ifndef IRONHIDE_SFC_UTILITIES_H
 #define IRONHIDE_SFC_UTILITIES_H
 

@@ -1,17 +1,13 @@
-//
-// Created by zanna on 05/10/18.
-//
-
 #include "classifier.h"
 
-char* classifier::Classifier::classify_pkt(unsigned char *pkt,
-                                                  size_t pkt_len) {
+char *classifier::Classifier::classify_pkt(unsigned char *pkt,
+                                           size_t pkt_len) {
     Mapper m{};
     m.set_pkt(pkt, pkt_len);
     // TODO retrieve from harbor?
     sfc_map[classifier::Classifier::Mapper::defaultUDPMapper()] = "0";
     sfc_map[classifier::Classifier::Mapper::defaultTCPMapper()] = "0";
-    return const_cast<char*>(sfc_map.at(m));
+    return const_cast<char *>(sfc_map.at(m));
 }
 
 void classifier::Classifier::Mapper::set_pkt(unsigned char *pkt,
@@ -44,11 +40,11 @@ void classifier::Classifier::Mapper::set_pkt(unsigned char *pkt,
 
 }
 
-bool classifier::Classifier::Mapper::operator==(const Mapper & m) const {
+bool classifier::Classifier::Mapper::operator==(const Mapper &m) const {
     return type_ == m.type_;
 }
 
-bool classifier::Classifier::Mapper::operator<(const Mapper & m) const {
+bool classifier::Classifier::Mapper::operator<(const Mapper &m) const {
     return type_ < m.type_;
 }
 
@@ -59,14 +55,16 @@ classifier::pkt_type classifier::Classifier::Mapper::default_mapping() {
 
 // ************************** temporary testing stuff **************************
 //TODO to remove when harbour calls are implemented
-classifier::Classifier::Mapper classifier::Classifier::Mapper::defaultUDPMapper() {
+classifier::Classifier::Mapper
+classifier::Classifier::Mapper::defaultUDPMapper() {
     Mapper m{};
     m.type_ = pkt_type::UDP;
     return m;
 }
 
 //TODO to remove when harbour calls are implemented
-classifier::Classifier::Mapper classifier::Classifier::Mapper::defaultTCPMapper() {
+classifier::Classifier::Mapper
+classifier::Classifier::Mapper::defaultTCPMapper() {
     Mapper m{};
     m.type_ = pkt_type::TCP;
     return m;

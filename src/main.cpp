@@ -19,10 +19,10 @@ void usage() {
             " -o   To set the external port used - Default 8787\n"
             " -h   Show this message\n"
             "'ROULETTE_SERVICE' can be set into the env to change remote address";
-    std::cout <<message<<std::endl;
+    std::cout << message << std::endl;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 #if DEBUG_BUILD
     utils::Log::instance()->set_log_level(utils::Log::trace);
 #endif
@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     int c;
     opterr = 0;
     while ((c = getopt(argc, argv, "ei:o:h")) != -1) {
-        switch(c) {
+        switch (c) {
             case 'e':
                 is_egress = true;
                 break;
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    if(const char* env_p = std::getenv("ROULETTE_SERVICE")) {
+    if (const char *env_p = std::getenv("ROULETTE_SERVICE")) {
         endpoint::Endpoint::set_remote(env_p);
     }
 

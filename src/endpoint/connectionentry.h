@@ -1,7 +1,3 @@
-//
-// Created by zanna on 08/10/18.
-//
-
 #ifndef IRONHIDE_CONNECTIONENTRY_H
 #define IRONHIDE_CONNECTIONENTRY_H
 

@@ -1,9 +1,6 @@
-//
-// Created by zanna on 04/10/18.
-//
 #include "server.h"
 
-server::Server::Server(uint16_t port) : port_(port){}
+server::Server::Server(uint16_t port) : port_(port) {}
 
 void server::Server::stop() {
     stopped_ = true;

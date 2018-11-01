@@ -1,7 +1,3 @@
-//
-// Created by zanna on 04/10/18.
-//
-
 #ifndef IRONHIDE_ASYNCTASKEXECUTOR_H
 #define IRONHIDE_ASYNCTASKEXECUTOR_H
 

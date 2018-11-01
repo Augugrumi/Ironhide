@@ -1,7 +1,3 @@
-//
-// Created by zanna on 09/10/18.
-//
-
 #ifndef IRONHIDE_SFCHEADERSTRUCT_H
 #define IRONHIDE_SFCHEADERSTRUCT_H
 

@@ -1,7 +1,3 @@
-//
-// Created by zanna on 05/10/18.
-//
-
 #ifndef IRONHIDE_INGRESS_H
 #define IRONHIDE_INGRESS_H
 
@@ -13,6 +9,7 @@
 #include <cstdint>
 #include <arpa/inet.h>
 #include <string>
+#include <sys/fcntl.h>
 
 #include "endpoint.h"
 #include "servertcp.h"

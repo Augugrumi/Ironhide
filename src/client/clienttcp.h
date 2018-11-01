@@ -1,7 +1,3 @@
-//
-// Created by zanna on 05/10/18.
-//
-
 #ifndef IRONHIDE_CLIENTTCP_H
 #define IRONHIDE_CLIENTTCP_H
 
@@ -17,6 +13,7 @@
 #include <string>
 
 #include "client.h"
+#include "log.h"
 
 namespace client {
 namespace tcp {

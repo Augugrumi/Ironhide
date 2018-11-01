@@ -1,7 +1,3 @@
-//
-// Created by zanna on 05/10/18.
-//
-
 #ifndef IRONHIDE_EGRESS_H
 #define IRONHIDE_EGRESS_H
 
@@ -11,6 +7,12 @@
 #include <cstdlib>
 #include <linux/ip.h>
 #include <functional>
+#include <fcntl.h>
+#include <fstream>
+#include <vector>
+#include <iterator>
+#include <ostream>
+#include <sys/socket.h>
 
 #include "endpoint.h"
 #include "servertcp.h"

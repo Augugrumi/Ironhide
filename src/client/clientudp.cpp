@@ -1,9 +1,3 @@
-//
-// Created by zanna on 05/10/18.
-//
-
-
-
 #include "clientudp.h"
 
 void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
@@ -13,7 +7,7 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
 
     struct addrinfo hints{};
     struct addrinfo *result, *rp;
-    fd_type sfd = - 1;
+    fd_type sfd = -1;
     int s;
     ssize_t res;
     bool send_flag = true;

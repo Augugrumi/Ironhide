@@ -1,7 +1,3 @@
-//
-// Created by zanna on 05/10/18.
-//
-
 #ifndef IRONHIDE_CLASSIFICATOR_H
 #define IRONHIDE_CLASSIFICATOR_H
 
