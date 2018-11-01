@@ -11,11 +11,11 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
                                                     const char *dst,
                                                     uint16_t port) {
 
-    struct addrinfo hints;
+    struct addrinfo hints{};
     struct addrinfo *result, *rp;
     fd_type sfd = - 1;
     int s;
-    ssize_t res = -1;
+    ssize_t res;
     bool send_flag = true;
 
     memset(&hints, 0, sizeof(struct addrinfo));
@@ -73,11 +73,11 @@ client::fd_type client::udp::ClientUDP::send_only(unsigned char *message,
                                                   size_t message_len,
                                                   const char *dst,
                                                   uint16_t port) {
-    struct addrinfo hints;
+    struct addrinfo hints{};
     struct addrinfo *result, *rp;
-    fd_type sfd;
+    fd_type sfd = -1;
     int s;
-    ssize_t res = -1;
+    ssize_t res;
     bool send_flag = true;
 
     memset(&hints, 0, sizeof(struct addrinfo));

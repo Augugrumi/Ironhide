@@ -10,7 +10,7 @@ server::udp::ServerUDP::ServerUDP(uint16_t port) : Server(port){}
 void server::udp::ServerUDP::run() {
     stopped_ = false;
     int socket_fd;
-    struct sockaddr_in address;
+    struct sockaddr_in address{};
     udp_pkt_mngmnt_args * args;
     socklen_t client_address_len;
 

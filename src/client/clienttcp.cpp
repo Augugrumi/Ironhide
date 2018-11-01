@@ -10,7 +10,7 @@ void client::tcp::ClientTCP::connect_to_server(const char* dst, uint16_t port) {
         perror("socket creation error");
         exit(EXIT_FAILURE);
     }
-    struct addrinfo hints;
+    struct addrinfo hints{};
     struct addrinfo *result, *rp;
     fd_type sfd = - 1;
     int s;

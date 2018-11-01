@@ -10,8 +10,8 @@
 #include <cstdint>
 #include <cstdlib>
 #include <csignal>
-#include <errno.h>
-#include <stdio.h>
+#include <cerrno>
+#include <cstdio>
 #include <functional>
 
 #include "log.h"
@@ -44,7 +44,7 @@ public:
      * Constructor
      * @param port Port on which the udp server waits for packets
      */
-    Server(uint16_t port);
+    explicit Server(uint16_t port);
     /**
      * Start server
      */

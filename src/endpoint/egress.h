@@ -7,8 +7,8 @@
 
 #include "config.h"
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include <linux/ip.h>
 #include <functional>
 

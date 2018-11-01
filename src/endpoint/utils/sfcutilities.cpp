@@ -2,7 +2,6 @@
 // Created by zanna on 28/09/18.
 //
 
-#include <log.h>
 #include "sfcutilities.h"
 
 namespace utils {
@@ -15,7 +14,7 @@ struct sfc_header SFCUtilities::create_header(
         const char *source_address, uint16_t source_port,
         const char *dest_address, uint16_t dest_port,
         uint16_t ttl, uint8_t direction) {
-    struct sfc_header header;
+    struct sfc_header header{};
     header.ver = 0;
     header.oam = 0;
     header.u1 = 0;
@@ -42,7 +41,7 @@ void SFCUtilities::prepend_header(unsigned char* no_header_pkt, size_t pkt_size,
 }
 
 struct sfc_header SFCUtilities::retrieve_header(uint8_t* packet) {
-    struct sfc_header header;
+    struct sfc_header header{};
     memcpy(&header, packet, sizeof(header));
     return header;
 }

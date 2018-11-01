@@ -5,13 +5,14 @@
 #ifndef IRONHIDE_SFC_UTILITIES_H
 #define IRONHIDE_SFC_UTILITIES_H
 
-#include <stdint.h>
+#include <cstdint>
 #include <arpa/inet.h>
-#include <string.h>
+#include <cstring>
 #include <string>
 
 #include "packetutils.h"
 #include "sfcheaderstruct.h"
+#include "log.h"
 
 namespace utils {
 namespace sfc_header {

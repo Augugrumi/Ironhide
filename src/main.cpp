@@ -32,20 +32,24 @@ int main(int argc, char* argv[]) {
 
     int c;
     opterr = 0;
-    while ((c = getopt(argc, (char **)argv, "ei:o:h")) != -1) {
+    while ((c = getopt(argc, argv, "ei:o:h")) != -1) {
         switch(c) {
             case 'e':
                 is_egress = true;
                 break;
             case 'i':
-                int_port = atoi(optarg);
+                int_port = static_cast<uint16_t>(std::stoi(optarg));
                 break;
             case 'o':
-                ext_port = atoi(optarg);
+                ext_port = static_cast<uint16_t>(std::stoi(optarg));
                 break;
             case 'h':
                 usage();
                 exit(0);
+            default:
+                std::cout << "Unrecognized option" << std::endl;
+                usage();
+                exit(1);
         }
     }
 

@@ -15,7 +15,7 @@ class Address
 {
 public:
     Address(const std::string&, uint16_t);
-    Address(const std::string&);
+    explicit Address(const std::string&);
 
     const static char* const PATH_SEPARATOR;
     const static char* const PORT_SEPARATOR;

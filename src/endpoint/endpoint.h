@@ -6,11 +6,11 @@
 #define IRONHIDE_ENDPOINT_H
 
 #include <cstdint>
-#include <stdio.h>
+#include <cstdio>
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include <netinet/in.h>
-#include <string.h>
+#include <cstring>
 #include <arpa/inet.h>
 #include <map>
 

@@ -3,7 +3,7 @@
 namespace utils {
 Log* Log::inst = new Log();
 Log::Level Log::log_level = Log::Level::info;
-std::string Log::prefix = "";
+std::string Log::prefix;
 
 std::string Log::level_lookup(Level to_lookup) const {
     std::string res;
@@ -47,7 +47,7 @@ std::string Log::format_log(
            std::to_string(bt.tm_year + 1900) + " - " +
            time;
 
-   std::string complete_prefix = prefix != "" ? prefix + " - " : "";
+   std::string complete_prefix = !prefix.empty() ? prefix + " - " : "";
    return complete_prefix +
            "[" + timestamp + "] - " +
            "[" + level + "] - " +
@@ -70,12 +70,6 @@ void Log::set_log_level(Level new_log_level) const {
 
 void Log::set_prefix(const std::string & new_prefix) const {
     prefix = new_prefix;
-}
-
-Log::Log() noexcept {
-}
-
-Log::~Log() {
 }
 
 Log* Log::instance() {

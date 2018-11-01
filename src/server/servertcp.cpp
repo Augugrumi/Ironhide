@@ -9,7 +9,7 @@ server::tcp::ServerTCP::ServerTCP(uint16_t port) : Server(port){}
 void server::tcp::ServerTCP::run() {
     stopped_ = false;
     int socket_fd, new_socket_fd;
-    struct sockaddr_in address;
+    struct sockaddr_in address{};
     tcp_pkt_mngmnt_args* args;
     socklen_t client_address_len;
 

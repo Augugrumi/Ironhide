@@ -6,7 +6,7 @@
 
 const char* const db::utils::Address::PORT_SEPARATOR = ":";
 const char* const db::utils::Address::PATH_SEPARATOR = "/";
-const std::string db::utils::Address::HTTP_PREFIX = "http://";
+const std::string db::utils::Address::HTTP_PREFIX("http://");
 
 db::utils::Address::Address(const std::string& new_address, uint16_t new_port)
         : address(new_address), port(new_port), has_http_prefix(false) {
@@ -29,11 +29,11 @@ void db::utils::Address::address_parse(const std::string& url) {
     size_t found = url.find_first_of(PORT_SEPARATOR);
     address = url.substr(0,found);
     size_t found1 = url.find_first_of(PATH_SEPARATOR);
-    port = std::stoul(url.substr(found+1,found1-found-1));
+    port = (uint16_t)(std::stoul(url.substr(found+1,found1-found-1)));
 }
 
 bool db::utils::Address::prefix_check(const std::string& address) const {
-    return strncmp(address.c_str(), HTTP_PREFIX.c_str(), HTTP_PREFIX.size()) == 0 ? true : false;
+    return strncmp(address.c_str(), HTTP_PREFIX.c_str(), HTTP_PREFIX.size()) == 0;
 }
 
 int db::utils::Address::get_port() const {

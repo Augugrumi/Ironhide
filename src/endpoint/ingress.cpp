@@ -16,7 +16,7 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
 
     ssize_t read_size;
     unsigned char pkt[BUFFER_SIZE];
-    char* sfcid, * prev_sfcid = const_cast<char*>("");
+    char* sfcid = const_cast<char *>(""), * prev_sfcid = const_cast<char*>("");
     bool first_pkt = true;
     bool db_error = false;
     uint16_t next_port;
@@ -30,7 +30,8 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
             exit(EXIT_FAILURE);
         } else if (read_size > 0) {
             LOG(ldebug, "6");
-            sfcid = Endpoint::classifier_.classify_pkt((unsigned char*) pkt, read_size);
+            sfcid = Endpoint::classifier_.classify_pkt((unsigned char*) pkt,
+                                                       static_cast<size_t>(read_size));
             if (first_pkt || (strcmp(sfcid, prev_sfcid) != 0)) {
                 headers =
                         utils::PacketUtils::retrieve_ip_tcp_header(
@@ -48,30 +49,32 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
                               db::protocol_type::TCP);
 
                     std::vector <db::utils::Address> path =
-                            roulette_->get_route_list(atoi(sfcid));
+                            roulette_->get_route_list(
+                                    static_cast<uint32_t>(std::stoi(sfcid)));
 
                     if (!path.empty()) {
                         // +2 because of ingress & egress
                         ttl = path.size() + 2;
-                        next_port = path[0].get_port();
+                        next_port = static_cast<uint16_t>(path[0].get_port());
 
                         sfc_header flh =
                                 utils::sfc_header::SFCUtilities::create_header(
-                                        atoi(sfcid), 0,
+                                        static_cast<uint32_t>(std::stoi(sfcid)),
+                                        0,
                                         INT_TO_IP_C_STR(headers.first.saddr),
                                         headers.second.source,
                                         INT_TO_IP_C_STR(headers.first.daddr),
-                                        headers.second.dest, ttl, 0);
-                        std::vector<unsigned char> formatted_pkt(read_size + SFC_HDR);
+                                        headers.second.dest,
+                                        static_cast<uint16_t>(ttl), 0);
+                        std::vector<unsigned char> formatted_pkt(
+                                static_cast<unsigned long>(read_size + SFC_HDR));
                         unsigned char *p = &formatted_pkt[0];
                         utils::sfc_header::SFCUtilities::prepend_header(pkt,
-                                                                        read_size,
+                                                                        static_cast<size_t>(read_size),
                                                                         flh, p);
                         client::udp::ClientUDP().send_and_wait_response(p,
-                                                                        read_size +
-                                                                        SFC_HDR,
-                                                                        path[0].get_address().c_str(),
-                                                                        next_port);
+                                static_cast<size_t>(read_size + SFC_HDR),
+                                path[0].get_address().c_str(), next_port);
 
                         prev_sfcid = sfcid;
                         first_pkt = false;
@@ -94,7 +97,7 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
             continue;
         }
 
-    } while(1);
+    } while(true);
 
     if(read_size == 0) {
         puts("Client disconnected");
@@ -122,7 +125,7 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
     auto args = (server::udp::udp_pkt_mngmnt_args *)mngmnt_args;
 
     char* sfcid = Endpoint::classifier_.classify_pkt((unsigned char*) args->pkt,
-                                           args->pkt_len);
+                                                     static_cast<size_t>(args->pkt_len));
     auto headers =
             utils::PacketUtils::retrieve_ip_udp_header(
                     (unsigned char*)args->pkt);
@@ -139,30 +142,30 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
                db::protocol_type::UDP);
 
     std::vector<db::utils::Address> path =
-            roulette_->get_route_list(atoi(sfcid));
+            roulette_->get_route_list(static_cast<uint32_t>(std::stoi(sfcid)));
 
     if (!path.empty()) {
         // +2 because of ingress & egress
         unsigned long ttl = path.size() + 2;
-        uint16_t next_port = path[0].get_port();
+        auto next_port = static_cast<uint16_t>(path[0].get_port());
 
         sfc_header flh =
                 utils::sfc_header::SFCUtilities::create_header(
-                        atoi(sfcid), 0,
+                        static_cast<uint32_t>(std::stoi(sfcid)), 0,
                         INT_TO_IP_C_STR(headers.first.saddr),
                         headers.second.source,
                         INT_TO_IP_C_STR(headers.first.daddr),
-                        headers.second.dest, ttl, 0);
-        std::vector<unsigned char> formatted_pkt(args->pkt_len + SFC_HDR);
+                        headers.second.dest, static_cast<uint16_t>(ttl), 0);
+        std::vector<unsigned char> formatted_pkt(
+                static_cast<unsigned long>(args->pkt_len + SFC_HDR));
         unsigned char *p = &formatted_pkt[0];
         utils::sfc_header::SFCUtilities::prepend_header((unsigned char*)args->pkt,
-                                                        args->pkt_len,
+                                                        static_cast<size_t>(args->pkt_len),
                                                         flh, p);
 
         client::udp::ClientUDP().send_and_wait_response(p,
-                                                        args->pkt_len + SFC_HDR,
-                                                        path[0].get_address().c_str(),
-                                                        next_port);
+                static_cast<size_t>(args->pkt_len + SFC_HDR),
+                path[0].get_address().c_str(), next_port);
     } else {
         LOG(ldebug, "no route available, discarding packages");
     }
@@ -206,14 +209,15 @@ void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
 
     std::pair<endpoint::socket_fd, sockaddr_in> sock = retrieve_connection_2(ce);
 
-    LOG(ldebug, "retrieved: " + sock.first);
+    LOG(ldebug, "retrieved: " + std::to_string(sock.first));
 
     ssize_t resp_c;
     // to calculate payload pointer (missing tcp/udp header size)
     unsigned int pkt_calc = SFC_HDR;
     if (conn_type == db::protocol_type::TCP) {
         pkt_calc += IP_TCP_H_LEN(args->pkt + SFC_HDR);
-        resp_c = send(sock.first , args->pkt + pkt_calc, args->pkt_len - pkt_calc, 0);
+        resp_c = send(sock.first , args->pkt + pkt_calc,
+                      static_cast<size_t>(args->pkt_len - pkt_calc), 0);
         if (resp_c < 0) {
             perror("send()");
             exit(EXIT_FAILURE);
@@ -224,7 +228,7 @@ void endpoint::Ingress::manage_pkt_from_chain(void * mngmnt_args) {
         pkt_calc += IP_UDP_H_LEN(args->pkt + SFC_HDR);
         socklen_t s = sizeof(sock.second);
         resp_c = sendto(sock.first, args->pkt + pkt_calc,
-                        args->pkt_len - pkt_calc, 0,
+                        static_cast<size_t>(args->pkt_len - pkt_calc), 0,
                         (struct sockaddr *)&sock.second, s);
         if (resp_c < 0) {
             perror("1. sendto()");

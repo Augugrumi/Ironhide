@@ -4,7 +4,6 @@
 #include <memory>
 #include <cstring>
 #include <arpa/inet.h>
-#include <string.h>
 
 #include "sfcheaderstruct.h"
 #include "sfcutilities.h"
@@ -22,8 +21,8 @@ private:
     struct sfc_header header;
 
 public:
-    SFCFixedLengthHeader(const unsigned char*) noexcept;
-    SFCFixedLengthHeader(std::shared_ptr<unsigned char>) noexcept;
+    explicit SFCFixedLengthHeader(const unsigned char*) noexcept;
+    explicit SFCFixedLengthHeader(std::shared_ptr<unsigned char>) noexcept;
 
     uint32_t get_service_path_id() const;
     uint32_t get_service_index() const;

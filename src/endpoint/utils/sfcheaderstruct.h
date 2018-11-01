@@ -5,7 +5,7 @@
 #ifndef IRONHIDE_SFCHEADERSTRUCT_H
 #define IRONHIDE_SFCHEADERSTRUCT_H
 
-#include <stdint.h>
+#include <cstdint>
 
 /**
  * Struct that represent a sfc header

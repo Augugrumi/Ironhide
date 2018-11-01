@@ -7,10 +7,10 @@
 
 #include <netinet/in.h>
 #include <pthread.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <atomic>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -39,7 +39,7 @@ public:
      * Constructor
      * @param port Port on which the udp server waits for packets
      */
-    ServerUDP(uint16_t port);
+    explicit ServerUDP(uint16_t port);
     /**
      * Start server
      */

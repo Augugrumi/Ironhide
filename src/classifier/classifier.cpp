@@ -6,7 +6,7 @@
 
 char* classifier::Classifier::classify_pkt(unsigned char *pkt,
                                                   size_t pkt_len) {
-    classifier::Classifier::Mapper m;
+    Mapper m{};
     m.set_pkt(pkt, pkt_len);
     // TODO retrieve from harbor?
     sfc_map[classifier::Classifier::Mapper::defaultUDPMapper()] = "0";
@@ -60,14 +60,14 @@ classifier::pkt_type classifier::Classifier::Mapper::default_mapping() {
 // ************************** temporary testing stuff **************************
 //TODO to remove when harbour calls are implemented
 classifier::Classifier::Mapper classifier::Classifier::Mapper::defaultUDPMapper() {
-    Mapper m;
+    Mapper m{};
     m.type_ = pkt_type::UDP;
     return m;
 }
 
 //TODO to remove when harbour calls are implemented
 classifier::Classifier::Mapper classifier::Classifier::Mapper::defaultTCPMapper() {
-    Mapper m;
+    Mapper m{};
     m.type_ = pkt_type::TCP;
     return m;
 }

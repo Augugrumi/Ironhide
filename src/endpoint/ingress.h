@@ -7,10 +7,10 @@
 
 #include "config.h"
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 #include <linux/ip.h>
-#include <stdint.h>
+#include <cstdint>
 #include <arpa/inet.h>
 #include <string>
 

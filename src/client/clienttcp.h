@@ -6,11 +6,11 @@
 #define IRONHIDE_CLIENTTCP_H
 
 #include <cstdint>
-#include <stdio.h>
+#include <cstdio>
 #include <sys/socket.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <netinet/in.h>
-#include <string.h>
+#include <cstring>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netdb.h>

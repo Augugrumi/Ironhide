@@ -7,9 +7,9 @@
 
 #include <netinet/in.h>
 #include <pthread.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
 #include <string.h>
 #include <atomic>
 #include <sys/socket.h>

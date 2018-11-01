@@ -390,9 +390,9 @@ std::vector<db::DBQuery::Endpoint> db::DBQuery::Query::get_all_endpoints() const
 }
 
 db::DBQuery::Endpoint db::DBQuery::Query::get_endpoint(db::endpoint_type endpoint) const {
-    for(auto it = endpoints.cbegin(); it != endpoints.cend(); it++) {
-        if (it->get_endpoint_typology() == endpoint) {
-            return *it;
+    for(auto e : endpoints) {
+        if (e.get_endpoint_typology() == endpoint) {
+            return e;
         }
     }
     throw db::exceptions::logic_failure::endpoint_not_found("Endpoint not found");
@@ -409,13 +409,13 @@ std::string db::DBQuery::Query::to_json() const {
     json_res[query::endpoint::SFC_ID] = id_sfc;
     (prt == protocol_type::TCP)? json_res[query::endpoint::PROTOCOL] = "tcp" :
             json_res[query::endpoint::PROTOCOL] = "udp";
-    for (auto it = endpoints.cbegin(); it != endpoints.cend(); it++) {
-        if (it->get_endpoint_typology() == INGRESS_T) {
-            json_res[query::endpoint::SOCK_INGRESS] = it->get_socket_id();
-            json_res[query::endpoint::INGRESS_IP] = it->get_ip();
+    for (auto e : endpoints) {
+        if (e.get_endpoint_typology() == INGRESS_T) {
+            json_res[query::endpoint::SOCK_INGRESS] = e.get_socket_id();
+            json_res[query::endpoint::INGRESS_IP] = e.get_ip();
         } else {
-            json_res[query::endpoint::SOCK_EGRESS] = it->get_socket_id();
-            json_res[query::endpoint::EGRESS_IP] = it->get_ip();
+            json_res[query::endpoint::SOCK_EGRESS] = e.get_socket_id();
+            json_res[query::endpoint::EGRESS_IP] = e.get_ip();
         }
     }
 
@@ -426,7 +426,7 @@ std::string db::DBQuery::Query::to_url() const {
     utils::URLBuilder query_builder =  utils::URLBuilder()
             .add_path(ENDPOINT_PREFIX);
 
-    if (endpoints.size() != 0) {
+    if (!endpoints.empty()) {
         if (endpoints.size() == 1) {
             endpoints[0].get_endpoint_typology() == INGRESS_T ?
                         query_builder.add_path(query::endpoint::EGRESS) :
@@ -514,7 +514,7 @@ db::DBQuery::Query::Builder::set_endpoint_type(const db::endpoint_type & type) {
 }
 
 db::DBQuery::Query db::DBQuery::Query::Builder::build() const {
-    if (endpoints.size() > 0)
+    if (!endpoints.empty())
         return Query(item_id,
                  ip_src,
                  ip_dst,

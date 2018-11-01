@@ -46,7 +46,7 @@ void endpoint::Endpoint::add_entry(endpoint::ConnectionEntry ce,
                     .set_port_dst(ce.get_port_dst())
                     .build());
     LOG(ltrace, response);
-    if (response != "")
+    if (!response.empty())
         map_to_remote[ce] = response;
 }
 

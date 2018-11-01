@@ -119,7 +119,7 @@ public:
      * Constructor
      * @param address of roulette
      */
-    DBQuery(const utils::Address&);
+    explicit DBQuery(const utils::Address&);
     ~DBQuery();
 
     class Endpoint {
@@ -165,7 +165,6 @@ public:
               const std::string&,
               const db::endpoint_type&);
     public:
-        std::string get_item_id() const;
         std::string get_ip_src() const;
         std::string get_ip_dst() const;
         uint16_t get_port_src() const;
