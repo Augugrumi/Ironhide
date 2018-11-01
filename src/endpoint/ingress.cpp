@@ -62,8 +62,8 @@ void endpoint::Ingress::manage_entering_tcp_packets(void * mngmnt_args) {
                                         headers.second.source,
                                         INT_TO_IP_C_STR(headers.first.daddr),
                                         headers.second.dest, ttl, 0);
-                        unsigned char formatted_pkt[read_size + SFC_HDR];
-                        unsigned char *p = formatted_pkt;
+                        std::vector<unsigned char> formatted_pkt(read_size + SFC_HDR);
+                        unsigned char *p = &formatted_pkt[0];
                         utils::sfc_header::SFCUtilities::prepend_header(pkt,
                                                                         read_size,
                                                                         flh, p);
@@ -153,13 +153,13 @@ void endpoint::Ingress::manage_entering_udp_packets(void * mngmnt_args) {
                         headers.second.source,
                         INT_TO_IP_C_STR(headers.first.daddr),
                         headers.second.dest, ttl, 0);
-        unsigned char formatted_pkt[args->pkt_len + SFC_HDR];
-        unsigned char* p = formatted_pkt;
+        std::vector<unsigned char> formatted_pkt(args->pkt_len + SFC_HDR);
+        unsigned char *p = &formatted_pkt[0];
         utils::sfc_header::SFCUtilities::prepend_header((unsigned char*)args->pkt,
                                                         args->pkt_len,
                                                         flh, p);
 
-        client::udp::ClientUDP().send_and_wait_response(formatted_pkt,
+        client::udp::ClientUDP().send_and_wait_response(p,
                                                         args->pkt_len + SFC_HDR,
                                                         path[0].get_address().c_str(),
                                                         next_port);

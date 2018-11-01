@@ -133,8 +133,9 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char* pkt,
                                 header.destination_port,
                                 ttl, 1);
 
-                unsigned char formatted_pkt[received_len + SFC_HDR];
-                unsigned char* pkt_pointer = formatted_pkt;
+                std::vector<unsigned char> formatted_pkt(received_len + SFC_HDR);
+                unsigned char *pkt_pointer = &formatted_pkt[0];
+
                 utils::sfc_header::SFCUtilities::prepend_header(buffer,
                                                                 received_len,
                                                                 flh,
@@ -170,7 +171,8 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
     auto header = utils::sfc_header::SFCUtilities::retrieve_header(pkt);
     const unsigned int pkt_calc = SFC_HDR + IP_TCP_H_LEN(pkt + SFC_HDR);
 
-    unsigned char s[pkt_len - pkt_calc];
+    std::vector<unsigned char> v(pkt_len - pkt_calc);
+    unsigned char* s = &v[0];
     std::strncpy((char*)s, (char*)(pkt + pkt_calc), pkt_len - pkt_calc);
 
     if (socket == -1) {
@@ -222,8 +224,8 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char* pkt,
                                 header.source_port,
                                 INT_TO_IP_C_STR(header.destination_address),
                                 header.destination_port, ttl, 1);
-                unsigned char formatted_pkt[received_len + SFC_HDR];
-                unsigned char* pkt_pointer = formatted_pkt;
+                std::vector<unsigned char> formatted_pkt(received_len + SFC_HDR);
+                unsigned char *pkt_pointer = &formatted_pkt[0];
                 utils::sfc_header::SFCUtilities::prepend_header(received,
                                                                 received_len,
                                                                 flh,
