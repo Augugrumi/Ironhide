@@ -29,7 +29,7 @@ namespace endpoint {
 class Egress : public Endpoint {
 private:
     /**
-     * Method used to manage UDP packets received from the chain.
+     * It manages incoming UDP packets that it has received from the chain
      * Once a packet is received the packet is read (SFC header and IP header)
      * in order to manage it differently depending on the protocol used.
      * @param args udp_pkt_mngmnt_args struct that contains data to manage
@@ -37,9 +37,9 @@ private:
      */
     void manage_pkt_from_chain(void* args);
     /**
-     * Method used to manage TCP connection with the destination.
+     * The method handles a TCP connection with a defined destination.
      * First the method checks if there is an existing connection (if not it
-     * creates one), than sends the packet to the destination waiting for the
+     * creates one), then sends the packet to the destination waiting for the
      * response.
      * @param pkt Packet to send
      * @param pkt_len Lenght of the packet to send
@@ -50,8 +50,8 @@ private:
                                     const ConnectionEntry& ce, socket_fd fd);
     /**
      * Method used to manage TCP connection with the destination.
-     * It create a connection and send data using raw sockets, than it waits for
-     * the response.
+     * It creates a connection and it sends data using raw sockets, than it
+     * waits for the response.
      * @param pkt Packet to send
      * @param pkt_len Lenght of the packet to send
      * @param ce Information on the connection

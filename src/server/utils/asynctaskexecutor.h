@@ -23,8 +23,6 @@ private:
     static AsyncTaskExecutor* inst;
 };
 
-/*#define ASYNC_TASK(task) \
-    utils::AsyncTaskExecutor::instance()->submit_task(task);*/
 // TODO find something better
 #define GO_ASYNC(task) \
     std::thread(task).detach();

@@ -25,7 +25,7 @@ namespace endpoint {
 class Ingress : public Endpoint {
 private:
     /**
-     * Method used to manage entering TCP connections.
+     * Method that manages incoming entering TCP connections.
      * Once a packet is received it will be classified. After roulette will be
      * updated to maintain data of the connection. To the packet is added the
      * SFC header and it is sent to the chain.

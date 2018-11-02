@@ -252,9 +252,7 @@ std::vector<db::utils::Address> db::DBQuery::get_route_list(uint32_t p_id) {
             Json::Value si_list = response[reply::CONTENT][query::route::SI];
 
             LOG(ltrace, "SI list size: " + std::to_string(si_list.size()));
-            /*for (Json::Value::ArrayIndex i = 0; i != response.size(); i++) {
-                LOG(ltrace, response[i]["port"].asString());
-            }*/
+
             for (const Json::Value &address : content[query::route::SI]) {
                 utils::Address to_add(address[query::route::ADDRESS].asString(),
                                       address[query::route::PORT].asUInt());
@@ -416,7 +414,7 @@ std::string db::DBQuery::Query::to_json() const {
     json_res[query::endpoint::SFC_ID] = id_sfc;
     (prt == protocol_type::TCP) ? json_res[query::endpoint::PROTOCOL] = "tcp" :
             json_res[query::endpoint::PROTOCOL] = "udp";
-    for (auto e : endpoints) {
+    for (const auto e : endpoints) {
         if (e.get_endpoint_typology() == INGRESS_T) {
             json_res[query::endpoint::SOCK_INGRESS] = e.get_socket_id();
             json_res[query::endpoint::INGRESS_IP] = e.get_ip();

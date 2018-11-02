@@ -25,12 +25,13 @@ void db::utils::Address::address_parse(const std::string &url) {
     size_t found = url.find_first_of(PORT_SEPARATOR);
     address = url.substr(0, found);
     size_t found1 = url.find_first_of(PATH_SEPARATOR);
-    port = (uint16_t) (std::stoul(url.substr(found + 1, found1 - found - 1)));
+    port = static_cast<uint16_t>(
+            std::stoul(url.substr(found + 1, found1 - found - 1)));
 }
 
 bool db::utils::Address::prefix_check(const std::string &address) const {
-    return strncmp(address.c_str(), HTTP_PREFIX.c_str(), HTTP_PREFIX.size()) ==
-           0;
+    return strncmp(
+            address.c_str(), HTTP_PREFIX.c_str(), HTTP_PREFIX.size()) == 0;
 }
 
 int db::utils::Address::get_port() const {

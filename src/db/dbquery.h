@@ -62,7 +62,7 @@ private:
     const utils::Address roulette_addr;
 
     /**
-     * Checks if operation is performed successfully
+     * Checks if the operation is performed successfully
      * @return 1 -> the operation returns OK, 0 otherwise
      */
     bool is_op_ok(const std::string&);
@@ -107,13 +107,13 @@ private:
 public:
     /**
      * Constructor
-     * @param ip String that represent the IP of roulette
+     * @param ip String that represents the Roulette IP
      * @param port Port used by roulette
      */
     DBQuery(const std::string& ip, uint16_t port);
     /**
      * Constructor
-     * @param address of roulette
+     * @param address Roulette address
      */
     explicit DBQuery(const utils::Address&);
     ~DBQuery();
@@ -203,8 +203,8 @@ public:
     typedef Query Entry;
 
     /**
-     * Create entry on roulette for endpoints
-     * @param query to add an entry to endpoints
+     * Adds an endpoint entry on Roulette
+     * @param query to add an endpoints entry
      * @return the result of the request
      */
     std::string create_entry(const Query&);

@@ -76,17 +76,8 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char *pkt,
         perror("sendto failed");
         exit(EXIT_FAILURE);
     } else {
-        LOG(ldebug,
-            "Packet Send "/* + std::to_string(getsockname(raw_socket, (sockaddr*)&sockstr, &socklen))*/);
+        LOG(ldebug, "Packet Send ");
     }
-
-    LOG(ldebug, std::to_string(
-            getsockname(raw_socket, (sockaddr *) &sockstr, &socklen)));
-
-    /*socket = client.send_only(pkt + pkt_calc, // move pointer after headers
-                              pkt_len - pkt_calc, // resize without considering headers
-                              INT_TO_IP_C_STR(header.destination_address),
-                              htons(header.destination_port));*/
 
     update_entry(ce, sock, server, db::endpoint_type::EGRESS_T);
 

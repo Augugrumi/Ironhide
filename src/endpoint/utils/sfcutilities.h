@@ -14,7 +14,7 @@ namespace utils {
 namespace sfc_header {
 
 /**
- * Utility class to manipulate SFC header
+ * Utility class to manipulate SFC headers
  */
 class SFCUtilities {
 public:
