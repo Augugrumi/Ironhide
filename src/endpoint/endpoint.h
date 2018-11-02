@@ -1,6 +1,8 @@
 #ifndef IRONHIDE_ENDPOINT_H
 #define IRONHIDE_ENDPOINT_H
 
+#include "config.h"
+
 #include <cstdint>
 #include <cstdio>
 #include <sys/types.h>

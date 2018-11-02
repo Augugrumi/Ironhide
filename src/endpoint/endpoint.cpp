@@ -2,10 +2,10 @@
 
 classifier::Classifier endpoint::Endpoint::classifier_;
 // TODO retrieve roulette address
-db::DBQuery *endpoint::Endpoint::roulette_ = new db::DBQuery("localhost",
-                                                             57684);
+db::DBQuery *endpoint::Endpoint::roulette_ = new db::DBQuery(ROULETTE_DEFAULT_ADDRESS,
+                                                             ROULETTE_DEFAULT_PORT);
 
-
+#include <cstdio>
 endpoint::Endpoint::Endpoint(uint16_t ext_port, uint16_t int_port) :
         ext_port_(ext_port), int_port_(int_port) {
     retrieve_ip();

@@ -53,11 +53,9 @@ std::string db::DBQuery::create_entry(const Query &query) {
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
         curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-        //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
                          db::DBQuery::curl_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
-        //curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_query.c_str());
 
         /* Perform the request, res will get the return code */
@@ -107,11 +105,9 @@ bool db::DBQuery::update_endpoint(const Query &query, const Endpoint &to_add) {
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
         curl_easy_setopt(curl, CURLOPT_URL, req_addr.c_str());
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-        //curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
                          db::DBQuery::curl_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &req_data_res);
-        //curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data.c_str());
 
         CURLcode res = curl_easy_perform(curl);
