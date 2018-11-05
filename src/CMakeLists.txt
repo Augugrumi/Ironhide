@@ -51,6 +51,8 @@ option(BOOST_THREAD "For boost thread pool support" ON)
 
 set(BUFFER_SIZE 65536)
 set(DEFAULT_TTL 1024)
+set(ROULETTE_DEFAULT_ADDRESS "localhost")
+set(ROULETTE_DEFAULT_PORT 57684)
 
 # Search for basic Thread support
 find_package(Threads REQUIRED)

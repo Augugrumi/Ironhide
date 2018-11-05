@@ -1,15 +1,11 @@
-//
-// Created by zanna on 04/10/18.
-//
-
 #ifndef IRONHIDE_SERVERTCP_H
 #define IRONHIDE_SERVERTCP_H
 
 #include <netinet/in.h>
 #include <pthread.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
 #include <string.h>
 #include <atomic>
 #include <sys/socket.h>
@@ -23,6 +19,9 @@
 namespace server {
 namespace tcp {
 
+/**
+* Structure that contains data used for managing a packet received
+*/
 typedef struct {
     int new_socket_fd;
     struct sockaddr_in client_address;
@@ -30,7 +29,14 @@ typedef struct {
 
 class ServerTCP : public Server {
 public:
+    /**
+     * Constructor
+     * @param port Port on which the udp server waits for packets
+     */
     ServerTCP(uint16_t port);
+    /**
+     * Start server
+     */
     void run() override;
 };
 

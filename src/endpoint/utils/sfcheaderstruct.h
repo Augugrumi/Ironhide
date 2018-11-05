@@ -1,13 +1,12 @@
-//
-// Created by zanna on 09/10/18.
-//
-
 #ifndef IRONHIDE_SFCHEADERSTRUCT_H
 #define IRONHIDE_SFCHEADERSTRUCT_H
 
-#include <stdint.h>
+#include <cstdint>
 
-//https://tools.ietf.org/id/draft-ietf-sfc-nsh-17.html
+/**
+ * Struct that represent a sfc header
+ * reference: https://tools.ietf.org/id/draft-ietf-sfc-nsh-17.html
+ */
 
 struct sfc_header {
     /**************************BASE HEADER*************************/

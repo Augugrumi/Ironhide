@@ -5,11 +5,12 @@
 #include <vector>
 
 #include "address.h"
+#include "log.h"
 
 namespace db {
 namespace utils {
-class URLBuilder
-{
+
+class URLBuilder {
 public:
     URLBuilder();
 
@@ -20,11 +21,10 @@ public:
 
     std::string build() const;
 private:
-    const static std::string HTTP_PREFIX;
-    const static std::string HTTPS_PREFIX;
     std::string url;
     std::vector<std::string> paths;
 };
+
 } // namespace utils
 } // namespace db
 

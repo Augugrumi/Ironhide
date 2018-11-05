@@ -1,9 +1,3 @@
-//
-// Created by zanna on 05/10/18.
-//
-
-
-
 #include "clientudp.h"
 
 void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
@@ -11,11 +5,11 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
                                                     const char *dst,
                                                     uint16_t port) {
 
-    struct addrinfo hints;
-    struct addrinfo *result, *rp, *address_used;
-    fd_type sfd = - 1;
+    struct addrinfo hints{};
+    struct addrinfo *result, *rp;
+    fd_type sfd = -1;
     int s;
-    ssize_t res = -1;
+    ssize_t res;
     bool send_flag = true;
 
     memset(&hints, 0, sizeof(struct addrinfo));
@@ -30,11 +24,14 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
     s = getaddrinfo(dst, std::to_string(port).c_str(), &hints, &result);
 
     if (s != 0) {
-        perror("Error getting info for destination");
-        if (s == EAI_SYSTEM)
-            fprintf(stderr, "looking up www.example.com: %s\n", strerror(errno));
-        else
-            fprintf(stderr, "looking up www.example.com: %s\n", gai_strerror(s));
+        LOG(lfatal, "Error getting info for destination");
+        if (s == EAI_SYSTEM) {
+            LOG(lfatal, std::string("getaddrinfo: ") +
+                        std::string(strerror(errno)));
+        } else {
+            LOG(lfatal, std::string("getaddrinfo: ") +
+                        std::string(gai_strerror(s)));
+        }
         exit(EXIT_FAILURE);
     }
 
@@ -56,15 +53,10 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
             if (res > 0) {
                 send_flag = false;
                 LOG(ldebug, "Sent");
-                address_used = rp;
             }
         }
     }
 
-    char buffer[BUFFER_SIZE];
-    /*res = recvfrom(sfd, buffer, BUFFER_SIZE, 0,
-                   address_used->ai_addr, &(address_used->ai_addrlen));
-*/
     if (sfd > 0) {
         close(sfd);
     }
@@ -75,11 +67,11 @@ client::fd_type client::udp::ClientUDP::send_only(unsigned char *message,
                                                   size_t message_len,
                                                   const char *dst,
                                                   uint16_t port) {
-    struct addrinfo hints;
+    struct addrinfo hints{};
     struct addrinfo *result, *rp;
-    fd_type sfd;
+    fd_type sfd = -1;
     int s;
-    ssize_t res = -1;
+    ssize_t res;
     bool send_flag = true;
 
     memset(&hints, 0, sizeof(struct addrinfo));

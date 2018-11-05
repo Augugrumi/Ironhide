@@ -10,7 +10,7 @@ namespace logic_failure {
 class query_ambiguous : public std::exception
 {
 public:
-    query_ambiguous(const std::string&);
+    explicit query_ambiguous(const std::string&);
 
     const char* what() const noexcept override;
 private:

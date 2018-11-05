@@ -1,19 +1,14 @@
-//
-// Created by zanna on 05/10/18.
-//
-
 #include "clienttcp.h"
 
-void client::tcp::ClientTCP::connect_to_server(const char* dst, uint16_t port) {
+void client::tcp::ClientTCP::connect_to_server(const char *dst, uint16_t port) {
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket creation error");
         exit(EXIT_FAILURE);
     }
-    struct addrinfo hints;
+    struct addrinfo hints{};
     struct addrinfo *result, *rp;
-    fd_type sfd = - 1;
+    fd_type sfd = -1;
     int s;
-    ssize_t res = -1;
     bool send_flag = true;
 
     memset(&hints, 0, sizeof(struct addrinfo));
@@ -27,7 +22,7 @@ void client::tcp::ClientTCP::connect_to_server(const char* dst, uint16_t port) {
     serv_addr.sin_port = htons(port);
 
     // Convert IPv4 and IPv6 addresses from text to binary form
-    if(inet_pton(AF_INET, dst, &serv_addr.sin_addr)<=0) {
+    if (inet_pton(AF_INET, dst, &serv_addr.sin_addr) <= 0) {
         perror("invalid address / address not supported");
         exit(EXIT_FAILURE);
     }
@@ -35,11 +30,14 @@ void client::tcp::ClientTCP::connect_to_server(const char* dst, uint16_t port) {
     s = getaddrinfo(dst, std::to_string(port).c_str(), &hints, &result);
 
     if (s != 0) {
-        perror("Error getting info for destination");
-        if (s == EAI_SYSTEM)
-            fprintf(stderr, "looking up www.example.com: %s\n", strerror(errno));
-        else
-            fprintf(stderr, "looking up www.example.com: %s\n", gai_strerror(s));
+        LOG(lfatal, "Error getting info for destination");
+        if (s == EAI_SYSTEM) {
+            LOG(lfatal, std::string("getaddrinfo: ") +
+                        std::string(strerror(errno)));
+        } else {
+            LOG(lfatal, std::string("getaddrinfo: ") +
+                        std::string(gai_strerror(s)));
+        }
         exit(EXIT_FAILURE);
     }
 
@@ -61,27 +59,19 @@ void client::tcp::ClientTCP::connect_to_server(const char* dst, uint16_t port) {
     }
 }
 
-void client::tcp::ClientTCP::send_and_receive(unsigned char* message,
+void client::tcp::ClientTCP::send_and_receive(unsigned char *message,
                                               size_t message_len,
-                                              unsigned char* received,
+                                              unsigned char *received,
                                               ssize_t received_len) {
     received = new unsigned char[BUFFER_SIZE];
 
-    for (int i = 0; i < message_len; i++)
-        printf("%x", *(message + i));
-    printf("\n");
+    send(sock, message, message_len, 0);
 
-    send(sock , message , message_len, 0);
-    printf("Hello message sent\n");
-    received_len = read(sock , received, BUFFER_SIZE);
+    received_len = read(sock, received, BUFFER_SIZE);
     if (received_len < -1) {
         perror("error receiving data");
         exit(EXIT_FAILURE);
     }
-
-    for (int i = 0; i < received_len; i++)
-        printf("%x", *(received + i));
-    printf("\n");
 }
 
 client::fd_type client::tcp::ClientTCP::access_to_socket() const {

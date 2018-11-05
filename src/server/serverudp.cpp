@@ -1,17 +1,12 @@
-//
-// Created by zanna on 04/10/18.
-//
-
-#include <utils/sfcutilities.h>
 #include "serverudp.h"
 
-server::udp::ServerUDP::ServerUDP(uint16_t port) : Server(port){}
+server::udp::ServerUDP::ServerUDP(uint16_t port) : Server(port) {}
 
 void server::udp::ServerUDP::run() {
     stopped_ = false;
     int socket_fd;
-    struct sockaddr_in address;
-    udp_pkt_mngmnt_args * args;
+    struct sockaddr_in address{};
+    udp_pkt_mngmnt_args *args;
     socklen_t client_address_len;
 
     /* Initialise IPv4 address. */
@@ -30,7 +25,7 @@ void server::udp::ServerUDP::run() {
     setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
     /* Bind address to socket. */
-    if (bind(socket_fd, (struct sockaddr *)&address, sizeof address) == -1) {
+    if (bind(socket_fd, (struct sockaddr *) &address, sizeof address) == -1) {
         perror("bind");
         exit(1);
     }
@@ -42,7 +37,7 @@ void server::udp::ServerUDP::run() {
         /* TODO: malloc'ing before accepting a connection causes only one small
          * memory when the program exits. It can be safely ignored.
          */
-        args = (udp_pkt_mngmnt_args*)malloc(sizeof *args);
+        args = (udp_pkt_mngmnt_args *) malloc(sizeof *args);
         if (!args) {
             perror("malloc");
             continue;
@@ -54,7 +49,7 @@ void server::udp::ServerUDP::run() {
         ssize_t pkt_len = recvfrom(socket_fd,
                                    args->pkt,
                                    BUFFER_SIZE, 0,
-                                   (struct sockaddr *)&args->client_address,
+                                   (struct sockaddr *) &args->client_address,
                                    &client_address_len);
         LOG(ldebug, "Received packet");
         if (pkt_len == -1) {
@@ -64,11 +59,6 @@ void server::udp::ServerUDP::run() {
         }
         args->pkt_len = pkt_len;
         args->socket_fd = socket_fd;
-
-        printf("serverudpppp: ");
-        for (int i = 0; i < args->pkt_len; i++)
-            printf("%x", *(args->pkt + i));
-        printf("\n");
 
         GO_ASYNC(std::bind<void>(manager_, args));
     }

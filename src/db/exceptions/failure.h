@@ -9,8 +9,7 @@ namespace exceptions {
 namespace ios_base {
 class failure : public std::exception {
 public:
-    failure(const std::string&);
-    ~failure() = default;
+    explicit failure(const std::string&);
 
     const char* what() const noexcept override;
 private:

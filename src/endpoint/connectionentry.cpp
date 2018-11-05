@@ -1,18 +1,14 @@
-//
-// Created by zanna on 08/10/18.
-//
-
 #include "connectionentry.h"
 
 endpoint::ConnectionEntry::ConnectionEntry(const std::string &ip_src,
                                            const std::string &ip_dst,
-                                           const uint16_t & port_src,
-                                           const uint16_t & port_dst,
-                                           const std::string & sfcid,
-                                           const db::protocol_type & prt)
+                                           const uint16_t &port_src,
+                                           const uint16_t &port_dst,
+                                           const std::string &sfcid,
+                                           const db::protocol_type &prt)
         : ip_src_(ip_src), ip_dst_(ip_dst),
-        port_src_(port_src), port_dst_(port_dst),
-        sfcid_(sfcid), prt_(prt){}
+          port_src_(port_src), port_dst_(port_dst),
+          sfcid_(sfcid), prt_(prt) {}
 
 bool endpoint::ConnectionEntry::operator==(
         const endpoint::ConnectionEntry &ce) const {

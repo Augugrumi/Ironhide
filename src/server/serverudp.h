@@ -1,16 +1,12 @@
-//
-// Created by zanna on 04/10/18.
-//
-
 #ifndef IRONHIDE_SERVERUDP_H
 #define IRONHIDE_SERVERUDP_H
 
 #include <netinet/in.h>
 #include <pthread.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <atomic>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -18,11 +14,15 @@
 #include <iostream>
 
 #include "utils/asynctaskexecutor.h"
+#include "utils/sfcutilities.h"
 #include "server.h"
 
 namespace server {
 namespace udp {
 
+/**
+ * Structure that contains data used for managing a packet received
+ */
 typedef struct {
     int socket_fd;
     struct sockaddr_in client_address;
@@ -32,7 +32,14 @@ typedef struct {
 
 class ServerUDP : public Server {
 public:
-    ServerUDP(uint16_t port);
+    /**
+     * Constructor
+     * @param port Port on which the udp server waits for packets
+     */
+    explicit ServerUDP(uint16_t port);
+    /**
+     * Start server
+     */
     void run() override;
 };
 

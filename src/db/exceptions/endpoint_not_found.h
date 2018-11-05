@@ -10,7 +10,7 @@ namespace logic_failure {
 class endpoint_not_found : public std::exception
 {
 public:
-    endpoint_not_found(const std::string&);
+    explicit endpoint_not_found(const std::string&);
 
     const char* what() const noexcept override;
 private:

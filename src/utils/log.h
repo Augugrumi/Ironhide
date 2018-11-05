@@ -9,6 +9,10 @@
 #include <ctime>
 
 namespace utils {
+
+/**
+ * Class used for logging purposes
+ */
 class Log {
 public:
     enum Level {
@@ -26,8 +30,8 @@ public:
     void set_prefix(const std::string &) const;
 
 protected:
-    Log() noexcept;
-    virtual ~Log();
+    Log() noexcept = default;
+    virtual ~Log() = default;
 private:
     static Log* inst;
     static Level log_level;

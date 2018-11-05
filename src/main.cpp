@@ -5,12 +5,10 @@
 #include "endpoint/egress.h"
 
 #include "config.h"
-#include "db/dbquery.h"
-#include "log.h"
 
-// TODO Remove me - only for test purposes
-#include <vector>
-
+/**
+ * Help printing function
+ */
 void usage() {
     const char message[] =
             "\n"
@@ -21,10 +19,10 @@ void usage() {
             " -o   To set the external port used - Default 8787\n"
             " -h   Show this message\n"
             "'ROULETTE_SERVICE' can be set into the env to change remote address";
-    std::cout <<message<<std::endl;
+    std::cout << message << std::endl;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 #if DEBUG_BUILD
     utils::Log::instance()->set_log_level(utils::Log::trace);
 #endif
@@ -34,24 +32,28 @@ int main(int argc, char* argv[]) {
 
     int c;
     opterr = 0;
-    while ((c = getopt(argc, (char **)argv, "ei:o:h")) != -1) {
-        switch(c) {
+    while ((c = getopt(argc, argv, "ei:o:h")) != -1) {
+        switch (c) {
             case 'e':
                 is_egress = true;
                 break;
             case 'i':
-                int_port = atoi(optarg);
+                int_port = static_cast<uint16_t>(std::stoi(optarg));
                 break;
             case 'o':
-                ext_port = atoi(optarg);
+                ext_port = static_cast<uint16_t>(std::stoi(optarg));
                 break;
             case 'h':
                 usage();
                 exit(0);
+            default:
+                std::cout << "Unrecognized option" << std::endl;
+                usage();
+                exit(1);
         }
     }
 
-    if(const char* env_p = std::getenv("ROULETTE_SERVICE")) {
+    if (const char *env_p = std::getenv("ROULETTE_SERVICE")) {
         endpoint::Endpoint::set_remote(env_p);
     }
 

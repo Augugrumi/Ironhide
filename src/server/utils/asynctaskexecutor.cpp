@@ -1,23 +1,21 @@
 #include "asynctaskexecutor.h"
 
-namespace utils {
+utils::AsyncTaskExecutor *utils::AsyncTaskExecutor::inst = new utils::AsyncTaskExecutor();
 
-AsyncTaskExecutor* AsyncTaskExecutor::inst = new AsyncTaskExecutor();
-
-AsyncTaskExecutor::AsyncTaskExecutor() noexcept {
-    thread_pool = std::unique_ptr<utils::ThreadPool>(new utils::ThreadPool(std::thread::hardware_concurrency()));
+utils::AsyncTaskExecutor::AsyncTaskExecutor() noexcept {
+    thread_pool = std::unique_ptr<utils::ThreadPool>(
+            new utils::ThreadPool(std::thread::hardware_concurrency()));
 }
 
-AsyncTaskExecutor::~AsyncTaskExecutor() {
+utils::AsyncTaskExecutor::~AsyncTaskExecutor() {
     delete inst;
 }
 
-void AsyncTaskExecutor::submit_task(const std::function<void()> & task) const {
+void
+utils::AsyncTaskExecutor::submit_task(const std::function<void()> &task) const {
     thread_pool->enqueue(task);
 }
 
-AsyncTaskExecutor* AsyncTaskExecutor::instance() {
+utils::AsyncTaskExecutor *utils::AsyncTaskExecutor::instance() {
     return inst;
 }
-
-} // namespace utils

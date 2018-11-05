@@ -4,7 +4,6 @@
 #include <memory>
 #include <cstring>
 #include <arpa/inet.h>
-#include <string.h>
 
 #include "sfcheaderstruct.h"
 #include "sfcutilities.h"
@@ -12,16 +11,18 @@
 #include "config.h"
 
 namespace utils {
-
 namespace sfc_header {
 
+/**
+ * Class that represents the SFC header.
+ */
 class SFCFixedLengthHeader {
 private:
     struct sfc_header header;
 
 public:
-    SFCFixedLengthHeader(const unsigned char*) noexcept;
-    SFCFixedLengthHeader(std::shared_ptr<unsigned char>) noexcept;
+    explicit SFCFixedLengthHeader(const unsigned char*) noexcept;
+    explicit SFCFixedLengthHeader(std::shared_ptr<unsigned char>) noexcept;
 
     uint32_t get_service_path_id() const;
     uint32_t get_service_index() const;
@@ -37,8 +38,8 @@ public:
 
     struct sfc_header get_header() const;
 };
-} // namespace sfcheader
 
+} // namespace sfcheader
 } // namespace utils
 
 #endif // IRONHIDE_SFC_FIXED_LENGTH_HEADER_H
