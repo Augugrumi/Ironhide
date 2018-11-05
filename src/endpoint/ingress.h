@@ -35,7 +35,7 @@ private:
      */
     void manage_entering_tcp_packets(void* args);
     /**
-     * Method used to manage entering UDP connections.
+     * Method that manages incoming UDP connections.
      * Once a packet is received it will be classified. After roulette will be
      * updated to maintain data of the connection. To the packet is added the
      * SFC header and it is sent to the chain.
