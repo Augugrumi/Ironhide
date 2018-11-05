@@ -44,7 +44,7 @@ private:
      */
     void manage_entering_udp_packets(void* args);
     /**
-     * Method used to manage UDP packets received from the chain.
+     * Method that manages received UDP packets coming from the chain.
      * Once a packet is received the packet is read (SFC header and IP header)
      * in order to manage it differently depending on the protocol used.
      * @param args udp_pkt_mngmnt_args struct that contains data to manage
