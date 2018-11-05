@@ -14,7 +14,7 @@ namespace utils {
 namespace sfc_header {
 
 /**
- * Class that represent the SFC header
+ * Class that represents the SFC header.
  */
 class SFCFixedLengthHeader {
 private:
