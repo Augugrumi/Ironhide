@@ -12,9 +12,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <iostream>
+#include <poll.h>
 
 #include "utils/asynctaskexecutor.h"
 #include "server.h"
+#include "log.h"
 
 namespace server {
 namespace tcp {

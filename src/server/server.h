@@ -12,7 +12,7 @@
 
 #include "log.h"
 
-#define BACKLOG 10
+#define BACKLOG 128
 
 namespace server {
 
