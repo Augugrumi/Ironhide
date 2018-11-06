@@ -1,4 +1,6 @@
 #include "egress.h"
+#include <iostream>
+#include <fstream>
 
 endpoint::Egress::Egress(uint16_t ext_port, uint16_t int_port) :
         Endpoint(ext_port, int_port) {}
@@ -189,6 +191,10 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char *pkt,
             LOG(lfatal, "error receiving data");
             exit(EXIT_FAILURE);
         } else if (received_len > 0) {
+            std::ofstream file;
+            file.open("packet.txt");
+            file << received;
+            file.close();
             sfcid = classifier_.classify_pkt(received,
                                              static_cast<size_t>(received_len));
             std::vector<db::utils::Address> path =
