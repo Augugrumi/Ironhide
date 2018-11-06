@@ -192,7 +192,7 @@ void endpoint::Egress::manage_exiting_tcp_packets(unsigned char *pkt,
             exit(EXIT_FAILURE);
         } else if (received_len > 0) {
             std::ofstream file;
-            file.open("packet.txt");
+            file.open("/test/packet.txt");
             file << received;
             file.close();
             sfcid = classifier_.classify_pkt(received,
