@@ -215,8 +215,8 @@ void endpoint::Ingress::manage_pkt_from_chain(void *mngmnt_args) {
             perror("send()");
             exit(EXIT_FAILURE);
         }
-        //shutdown(sock.first, 2);
-        //close(sock.first);
+        shutdown(sock.first, 2);
+        close(sock.first);
     } else {
         pkt_calc += IP_UDP_H_LEN(args->pkt + SFC_HDR);
         socklen_t s = sizeof(sock.second);
