@@ -33,17 +33,17 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
 
         if (args->first_run) {
             LOG(ltrace, "First run, adding entry");
-            add_entry(ConnectionEntry(
-                              INT_TO_IP(headers.first.saddr),
-                              INT_TO_IP(headers.first.daddr),
-                              htons(headers.second.source),
-                              htons(headers.second.dest), sfcid,
-                              db::protocol_type::TCP),
+            args->ce = new ConnectionEntry(
+                        INT_TO_IP(headers.first.saddr),
+                        INT_TO_IP(headers.first.daddr),
+                        htons(headers.second.source),
+                        htons(headers.second.dest), sfcid,
+                        db::protocol_type::TCP);
+            add_entry(*args->ce,
                       new_socket_fd,
                       args->client_address,
                       db::endpoint_type::INGRESS_T,
                       db::protocol_type::TCP);
-            args->first_headers = headers;
         }
         try {
 
@@ -93,14 +93,9 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
     if (read_size == 0) {
         puts("Client disconnected");
         fflush(stdout);
-        std::pair<iphdr, tcphdr> first_headers = args->first_headers;
-        delete_entry(ConnectionEntry(
-                INT_TO_IP(first_headers.first.saddr),
-                INT_TO_IP(first_headers.first.daddr),
-                htons(first_headers.second.source),
-                htons(first_headers.second.dest), sfcid,
-                db::protocol_type::TCP));
+        delete_entry(*args->ce);
         close(new_socket_fd);
+        delete args->ce;
         free(args);
     } else if (read_size == -1) {
         perror("recv failed");

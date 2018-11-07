@@ -19,6 +19,7 @@
 #include "utils/asynctaskexecutor.h"
 #include "server.h"
 #include "log.h"
+#include "connectionentry.h"
 
 namespace server {
 namespace tcp {
@@ -30,7 +31,7 @@ typedef struct {
     int new_socket_fd;
     struct sockaddr_in client_address;
     bool first_run;
-    std::pair<iphdr, tcphdr> first_headers;
+    endpoint::ConnectionEntry* ce;
 } tcp_pkt_mngmnt_args;
 
 class ServerTCP : public Server {
