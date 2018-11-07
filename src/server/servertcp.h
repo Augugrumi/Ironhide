@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include <iostream>
 #include <poll.h>
+#include <linux/ip.h>
+#include <linux/tcp.h>
 
 #include "utils/asynctaskexecutor.h"
 #include "server.h"
@@ -27,6 +29,8 @@ namespace tcp {
 typedef struct {
     int new_socket_fd;
     struct sockaddr_in client_address;
+    bool first_run;
+    std::pair<iphdr, tcphdr> first_headers;
 } tcp_pkt_mngmnt_args;
 
 class ServerTCP : public Server {

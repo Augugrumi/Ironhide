@@ -38,6 +38,7 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
     for (rp = result; send_flag && rp != nullptr; rp = rp->ai_next) {
 
         if (sfd > 0) {
+            LOG(ltrace, "Close ln 41 clientudp.cpp");
             close(sfd);
         }
         sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
@@ -58,6 +59,7 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
     }
 
     if (sfd > 0) {
+        LOG(ltrace, "Close ln 62 clientudp.cpp");
         close(sfd);
     }
     freeaddrinfo(result);

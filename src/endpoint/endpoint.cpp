@@ -73,6 +73,11 @@ void endpoint::Endpoint::delete_entry(endpoint::ConnectionEntry ce) {
     LOG(ldebug, "Deleting...");
     auto it = connection_map.find(ce);
     auto itend = connection_map.end();
+    // testing stuff....
+    connection_map.erase(ce);
+    roulette_->delete_entry(map_to_remote[ce].c_str());
+    map_to_remote.erase(ce);
+    //end testing stuff
     if (it != itend) {
         connection_map.erase(ce);
         roulette_->delete_entry(map_to_remote[ce].c_str());

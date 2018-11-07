@@ -50,6 +50,7 @@ void server::tcp::ServerTCP::run() {
         pollfd.revents = 0;
 
         args->new_socket_fd = icfd;
+        args->first_run = true;
         auto recv_elaborator = std::bind<void>(manager_, args);
 
         if (pollfd.fd < 0) {
@@ -68,26 +69,35 @@ void server::tcp::ServerTCP::run() {
                 if (pollfd.revents & POLLIN) {
                     LOG(ltrace, "Detected POLLIN event");
                     recv_elaborator();
+                    args->first_run = false;
+                    continue;
                 }
                 if (pollfd.revents & POLLPRI) {
                     LOG(ltrace, "2");
+                    continue;
                 }
                 if (pollfd.revents & POLLOUT) {
                     LOG(ltrace, "3");
+                    continue;
                 }
                 if (pollfd.revents & POLLRDHUP) {
                     LOG(ltrace, "4");
+                    continue;
                 }
                 if (pollfd.revents & POLLERR) {
                     LOG(ltrace, "5");
+                    continue;
                 }
                 if (pollfd.revents & POLLHUP) {
                     LOG(ltrace, "6");
+                    continue;
                 }
                 if (pollfd.revents & POLLNVAL) {
                     LOG(ltrace, "7");
+                    exit(EXIT_FAILURE);
                 } else {
-                    LOG(ltrace, "Unknow event: " + std::to_string(pollfd.events));
+                    LOG(ltrace, "Unknow event: " + std::to_string(pollfd.revents));
+                    continue;
                 }
             } else {
                 LOG(lwarn, "poll_ret value: " + std::to_string(poll_ret));

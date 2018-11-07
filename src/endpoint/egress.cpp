@@ -60,6 +60,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char *pkt,
 
     if (bind(raw_socket, (struct sockaddr *) &sockstr, socklen) == -1) {
         LOG(lfatal, "raw socket bind");
+        LOG(ltrace, "Close ln 63 egress.cpp");
         close(raw_socket);
         exit(EXIT_FAILURE);
     }

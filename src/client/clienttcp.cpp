@@ -44,6 +44,7 @@ void client::tcp::ClientTCP::connect_to_server(const char *dst, uint16_t port) {
     for (rp = result; send_flag && rp != nullptr; rp = rp->ai_next) {
 
         if (sfd > 0) {
+            LOG(ltrace, "Close ln 47 clienttcp.cpp");
             close(sfd);
         }
         sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
@@ -83,5 +84,6 @@ sockaddr_in client::tcp::ClientTCP::access_to_sockaddr_in() const {
 }
 
 void client::tcp::ClientTCP::close_connection() {
+    LOG(ltrace, "Close ln 87 clienttcp.cpp");
     close(sock);
 }
