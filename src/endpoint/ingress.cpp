@@ -78,7 +78,6 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
                                                                         SFC_HDR),
                                                                 path[0].get_address().c_str(),
                                                                 next_port);
-
                 prev_sfcid = sfcid;
             } else {
                 LOG(ldebug, "no route available, discarding packages");
@@ -93,9 +92,13 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
     if (read_size == 0) {
         puts("Client disconnected");
         fflush(stdout);
-        delete_entry(*args->ce);
+        if (args->ce) {
+            delete_entry(*args->ce);
+            delete args->ce;
+        } else {
+            LOG(ldebug, "No connection entry set, nothing to delete");
+        }
         close(new_socket_fd);
-        delete args->ce;
         free(args);
     } else if (read_size == -1) {
         perror("recv failed");
