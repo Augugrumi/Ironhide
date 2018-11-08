@@ -38,7 +38,7 @@ void server::tcp::ServerTCP::run() {
                                         reinterpret_cast<struct sockaddr*>(&addr),
                                         &addr_size);
 
-    args = (tcp_pkt_mngmnt_args *) malloc(sizeof *args);
+    args = (tcp_pkt_mngmnt_args *) malloc(sizeof (tcp_pkt_mngmnt_args));
     if (!args) {
         perror("malloc");
     }
@@ -51,6 +51,7 @@ void server::tcp::ServerTCP::run() {
 
         args->new_socket_fd = icfd;
         args->first_run = true;
+        args->sfcid = nullptr;
         auto recv_elaborator = std::bind<void>(manager_, args);
 
         if (pollfd.fd < 0) {

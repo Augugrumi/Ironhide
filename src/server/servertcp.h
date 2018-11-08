@@ -32,6 +32,7 @@ typedef struct {
     struct sockaddr_in client_address;
     bool first_run;
     endpoint::ConnectionEntry* ce;
+    char* sfcid;
 } tcp_pkt_mngmnt_args;
 
 class ServerTCP : public Server {

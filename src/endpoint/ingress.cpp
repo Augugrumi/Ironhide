@@ -22,16 +22,26 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
         perror("error receiving data");
         exit(EXIT_FAILURE);
     } else if (read_size > 0) {
+        for (int i = 0; i < 1024; i++) {
+            printf("%X", pkt[i]);
+        }
+        std::cout << std::endl;
         LOG(ltrace, "Read size > 0, data incoming");
-        sfcid = Endpoint::classifier_.classify_pkt((unsigned char *) pkt,
-                                                   static_cast<size_t>(read_size));
+        if (args->sfcid == nullptr) {
+
+            sfcid = Endpoint::classifier_.classify_pkt(pkt,
+                                                       static_cast<size_t>(read_size));
+            args->sfcid = sfcid;
+        } else {
+            sfcid = args->sfcid;
+        }
 
         headers =
-                utils::PacketUtils::retrieve_ip_tcp_header(
-                        (unsigned char *) pkt);
+                utils::PacketUtils::retrieve_ip_tcp_header(pkt);
 
 
         if (args->first_run) {
+            args->first_run = false;
             LOG(ltrace, "First run, adding entry");
             args->ce = new ConnectionEntry(
                         INT_TO_IP(headers.first.saddr),
@@ -44,6 +54,8 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
                       args->client_address,
                       db::endpoint_type::INGRESS_T,
                       db::protocol_type::TCP);
+        } else {
+            LOG(ltrace, "Second run");
         }
         try {
 
