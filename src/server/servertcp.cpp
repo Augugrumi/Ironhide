@@ -21,6 +21,15 @@ void server::tcp::ServerTCP::run() {
     int option = 1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
+    int on = 1;
+    int rc = ioctl(fd, FIONBIO, (char *)&on);
+    if (rc < 0)
+    {
+        perror("ioctl() failed");
+        close(fd);
+        exit(-1);
+    }
+
     if (bind(fd, reinterpret_cast<struct sockaddr*>(&addr), addr_size) < 0 ) {
         LOG(lfatal, "Faliure binding to port: " + std::to_string(port_));
         exit(EXIT_FAILURE);
@@ -33,7 +42,184 @@ void server::tcp::ServerTCP::run() {
 
     setup_sign_catching();
 
-    addr_size = sizeof(addr);
+    struct pollfd fds[200];
+    memset(fds, 0 , sizeof(fds));
+
+    fds[0].fd = fd;
+    fds[0].events = POLLIN;
+
+    char buffer[BUFFER_SIZE];
+    int nfds = 1, current_size, i, new_sd, len, j;
+    bool end_server, close_conn, compress_array = false;
+    do {
+        printf("Waiting on poll()...\n");
+        rc = poll(fds, nfds, -1);
+        if (rc < 0) {
+            perror("  poll() failed");
+            break;
+        }
+
+        current_size = nfds;
+        for (i = 0; i < current_size; i++) {
+            /*********************************************************/
+            /* Loop through to find the descriptors that returned    */
+            /* POLLIN and determine whether it's the listening       */
+            /* or the active connection.                             */
+            /*********************************************************/
+            if(fds[i].revents == 0)
+                continue;
+
+            /*********************************************************/
+            /* If revents is not POLLIN, it's an unexpected result,  */
+            /* log and end the server.                               */
+            /*********************************************************/
+            if(fds[i].revents != POLLIN)
+            {
+                printf("  Error! revents = %d\n", fds[i].revents);
+                end_server = true;
+                break;
+
+            }
+            if (fds[i].fd == fd)
+            {
+                /*******************************************************/
+                /* Listening descriptor is readable.                   */
+                /*******************************************************/
+                printf("  Listening socket is readable\n");
+
+                /*******************************************************/
+                /* Accept all incoming connections that are            */
+                /* queued up on the listening socket before we         */
+                /* loop back and call poll again.                      */
+                /*******************************************************/
+                do
+                {
+                    /*****************************************************/
+                    /* Accept each incoming connection. If               */
+                    /* accept fails with EWOULDBLOCK, then we            */
+                    /* have accepted all of them. Any other              */
+                    /* failure on accept will cause us to end the        */
+                    /* server.                                           */
+                    /*****************************************************/
+                    new_sd = accept(fd, NULL, NULL);
+                    if (new_sd < 0)
+                    {
+                        if (errno != EWOULDBLOCK)
+                        {
+                            perror("  accept() failed");
+                            end_server = true;
+                        }
+                        break;
+                    }
+
+                    /*****************************************************/
+                    /* Add the new incoming connection to the            */
+                    /* pollfd structure                                  */
+                    /*****************************************************/
+                    printf("  New incoming connection - %d\n", new_sd);
+                    fds[nfds].fd = new_sd;
+                    fds[nfds].events = POLLIN;
+                    nfds++;
+
+                    /*****************************************************/
+                    /* Loop back up and accept another incoming          */
+                    /* connection                                        */
+                    /*****************************************************/
+                } while (new_sd != -1);
+            }
+
+                /*********************************************************/
+                /* This is not the listening socket, therefore an        */
+                /* existing connection must be readable                  */
+                /*********************************************************/
+
+            else {
+                printf("  Descriptor %d is readable\n", fds[i].fd);
+                close_conn = false;
+                /*******************************************************/
+                /* Receive all incoming data on this socket            */
+                /* before we loop back and call poll again.            */
+                /*******************************************************/
+                do
+                {
+                    args = new tcp_pkt_mngmnt_args();
+                    args->pkt = new char[BUFFER_SIZE];
+                    args->new_socket_fd = fds[i].fd;
+                    /*****************************************************/
+                    /* Receive data on this connection until the         */
+                    /* recv fails with EWOULDBLOCK. If any other         */
+                    /* failure occurs, we will close the                 */
+                    /* connection.                                       */
+                    /*****************************************************/
+                    rc = recv(fds[i].fd, args->pkt, BUFFER_SIZE, 0);
+                    if (rc < 0)
+                    {
+                        if (errno != EWOULDBLOCK)
+                        {
+                            perror("  recv() failed");
+                            close_conn = true;
+                        }
+                        break;
+                    }
+
+                    /*****************************************************/
+                    /* Check to see if the connection has been           */
+                    /* closed by the client                              */
+                    /*****************************************************/
+                    if (rc == 0)
+                    {
+                        printf("  Connection closed\n");
+                        close_conn = true;
+                        break;
+                    }
+
+                    args->pkt_size = rc;
+                    GO_ASYNC(std::bind<void>(manager_, args));
+                } while(true);
+
+                /*******************************************************/
+                /* If the close_conn flag was turned on, we need       */
+                /* to clean up this active connection. This            */
+                /* clean up process includes removing the              */
+                /* descriptor.                                         */
+                /*******************************************************/
+                if (close_conn)
+                {
+                    close(fds[i].fd);
+                    fds[i].fd = -1;
+                    compress_array = true;
+                }
+
+
+            }  /* End of existing connection is readable             */
+        } /* End of loop through pollable descriptors              */
+
+        /***********************************************************/
+        /* If the compress_array flag was turned on, we need       */
+        /* to squeeze together the array and decrement the number  */
+        /* of file descriptors. We do not need to move back the    */
+        /* events and revents fields because the events will always*/
+        /* be POLLIN in this case, and revents is output.          */
+        /***********************************************************/
+        if (compress_array) {
+            compress_array = false;
+            for (i = 0; i < nfds; i++)
+            {
+                if (fds[i].fd == -1)
+                {
+                    for(j = i; j < nfds; j++)
+                    {
+                        fds[j].fd = fds[j+1].fd;
+                    }
+                    i--;
+                    nfds--;
+                }
+            }
+        }
+
+    } while (end_server == false);
+
+    /*addr_size = sizeof(addr);
     int incoming_connection_fd = accept(fd,
                                         reinterpret_cast<struct sockaddr*>(&addr),
                                         &addr_size);
@@ -106,7 +292,7 @@ void server::tcp::ServerTCP::run() {
         }
     };
 
-    GO_ASYNC(std::bind<void>(handle_connection, incoming_connection_fd));
+    GO_ASYNC(std::bind<void>(handle_connection, incoming_connection_fd));*/
 }
 
 /*

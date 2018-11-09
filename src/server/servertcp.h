@@ -12,9 +12,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <iostream>
-#include <poll.h>
+#include <sys/poll.h>
 #include <linux/ip.h>
 #include <linux/tcp.h>
+#include <unistd.h>
+#include <cstring>
+#include <sys/ioctl.h>
 
 #include "utils/asynctaskexecutor.h"
 #include "server.h"
@@ -32,6 +35,8 @@ typedef struct {
     struct sockaddr_in client_address;
     bool first_run;
     endpoint::ConnectionEntry* ce;
+    char* pkt;
+    size_t pkt_size;
 } tcp_pkt_mngmnt_args;
 
 class ServerTCP : public Server {

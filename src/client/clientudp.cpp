@@ -82,6 +82,10 @@ client::fd_type client::udp::ClientUDP::send_only(unsigned char *message,
     hints.ai_flags = 0;
     hints.ai_protocol = IPPROTO_UDP; /* UDP protocol */
 
+    /*for (int i = 0; i < message_len; i++)
+        printf("%c", message[i]);
+    printf("\n");*/
+
     s = getaddrinfo(dst, std::to_string(port).c_str(), &hints, &result);
 
     if (s != 0) {
@@ -92,7 +96,9 @@ client::fd_type client::udp::ClientUDP::send_only(unsigned char *message,
     for (rp = result; rp != nullptr && send_flag; rp = rp->ai_next) {
 
         sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (sfd > 0 && connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1) {
+        int option = 1;
+        setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
+        if (sfd > 0 /*&& connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1*/) {
             res = sendto(
                     sfd,
                     message,

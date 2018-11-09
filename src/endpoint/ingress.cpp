@@ -8,7 +8,6 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
 
     auto args = (server::tcp::tcp_pkt_mngmnt_args *) mngmnt_args;
     int new_socket_fd = args->new_socket_fd;
-
     ssize_t read_size;
     unsigned char pkt[BUFFER_SIZE];
     char *sfcid = const_cast<char *>(""), *prev_sfcid = const_cast<char *>("");
@@ -16,15 +15,24 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
     uint16_t next_port;
     unsigned long ttl;
 
-    std::pair<iphdr, tcphdr> headers;
+    /*for (int i = 0; i < args->pkt_size; i++)
+        printf("%c", (args->pkt)[i]);
+    printf("\n");*/
+
+    int s = client::udp::ClientUDP().send_only((unsigned char*)args->pkt,
+                                                    args->pkt_size,
+                                                    "127.0.0.1",
+                                                    9090);
+    close(s);
+    /*std::pair<iphdr, tcphdr> headers;
     read_size = recv(new_socket_fd, pkt, BUFFER_SIZE, 0);
     if (read_size < 0) {
         perror("error receiving data");
         exit(EXIT_FAILURE);
     } else if (read_size > 0) {
         LOG(ltrace, "Read size > 0, data incoming");
-        sfcid = Endpoint::classifier_.classify_pkt((unsigned char *) pkt,
-                                                   static_cast<size_t>(read_size));
+        sfcid = "0";//Endpoint::classifier_.classify_pkt((unsigned char *) pkt,
+                    //                               static_cast<size_t>(read_size));
 
         headers =
                 utils::PacketUtils::retrieve_ip_tcp_header(
@@ -53,8 +61,8 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
 
             if (!path.empty()) {
                 // +2 because of ingress & egress
-                ttl = path.size() + 2;
-                next_port = static_cast<uint16_t>(path[0].get_port());
+                //ttl = path.size() + 2;
+                next_port = 9090;//static_cast<uint16_t>(path[0].get_port());
 
                 sfc_header flh =
                         utils::sfc_header::SFCUtilities::create_header(
@@ -78,6 +86,11 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
                                                                         SFC_HDR),
                                                                 path[0].get_address().c_str(),
                                                                 next_port);
+
+                client::udp::ClientUDP().send_and_wait_response((unsigned char*)args->pkt,
+                                                                args->pkt_size,
+                                                                "192.168.1.6",
+                                                                9090);
                 prev_sfcid = sfcid;
             } else {
                 LOG(ldebug, "no route available, discarding packages");
@@ -87,9 +100,9 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
             perror(e.what());
             db_error = true;
         }
-    }
+    }*/
 
-    if (read_size == 0) {
+    /*if (read_size == 0) {
         puts("Client disconnected");
         fflush(stdout);
         if (args->ce) {
@@ -102,14 +115,14 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
         free(args);
     } else if (read_size == -1) {
         perror("recv failed");
-    }
+    }*/
 
     //free(args);
 
-    if (db_error) {
+    /*if (db_error) {
         LOG(ltrace, "Close ln 106 ingress.cpp");
         close(new_socket_fd);
-    }
+    }*/
 }
 
 void endpoint::Ingress::manage_entering_udp_packets(void *mngmnt_args) {

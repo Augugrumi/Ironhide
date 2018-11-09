@@ -1,4 +1,5 @@
 #include "packetutils.h"
+#include "log.h"
 
 const uint16_t utils::PacketUtils::ip_hdr_len = sizeof(iphdr);
 const uint16_t utils::PacketUtils::udp_hdr_len = sizeof(udphdr);
@@ -24,19 +25,33 @@ uint16_t utils::PacketUtils::retrieve_port(uint16_t port) {
 
 utils::header_ip_tcp utils::PacketUtils::retrieve_ip_tcp_header(
         unsigned char *pkt) {
+    LOG(ltrace, "1");
     struct iphdr h_ip_tmp{};
+    LOG(ltrace, "2");
     struct iphdr h_ip{};
+    LOG(ltrace, "3");
     struct tcphdr h_tcp_tmp{};
+    LOG(ltrace, "4");
     struct tcphdr h_tcp{};
+    LOG(ltrace, "5");
     memcpy(&h_ip_tmp, pkt, ip_hdr_len);
+    LOG(ltrace, "6");
     auto ip_pkt_len = static_cast<unsigned int>(h_ip_tmp.ihl * 4);
+    LOG(ltrace, "7");
     memcpy(&h_ip, pkt, ip_pkt_len);
+    LOG(ltrace, "8");
     memcpy(&h_tcp_tmp, pkt + ip_pkt_len, tcp_hdr_len);
+    LOG(ltrace, "9");
     auto tcp_pkt_len = static_cast<unsigned int>(h_tcp_tmp.doff * 4);
+    LOG(ltrace, "10");
     memcpy(&h_tcp, pkt + ip_pkt_len, tcp_pkt_len);
+    LOG(ltrace, "11");
     header_ip_tcp res;
+    LOG(ltrace, "12");
     res.first = h_ip;
+    LOG(ltrace, "13");
     res.second = h_tcp;
+    LOG(ltrace, "14");
     return res;
 }
 
