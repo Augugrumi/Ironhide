@@ -1,4 +1,6 @@
 #include "servertcp.h"
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
 
 server::tcp::ServerTCP::ServerTCP(uint16_t port) : Server(port) {}
 
@@ -22,13 +24,13 @@ void server::tcp::ServerTCP::run() {
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
     int on = 1;
-    int rc = ioctl(fd, FIONBIO, (char *)&on);
+    ssize_t rc;/* = ioctl(fd, FIONBIO, (char *)&on);
     if (rc < 0)
     {
         perror("ioctl() failed");
         close(fd);
         exit(-1);
-    }
+    }*/
 
     if (bind(fd, reinterpret_cast<struct sockaddr*>(&addr), addr_size) < 0 ) {
         LOG(lfatal, "Faliure binding to port: " + std::to_string(port_));
@@ -92,7 +94,7 @@ void server::tcp::ServerTCP::run() {
                 /* queued up on the listening socket before we         */
                 /* loop back and call poll again.                      */
                 /*******************************************************/
-                do
+                /*do
                 {
                     /*****************************************************/
                     /* Accept each incoming connection. If               */
@@ -125,7 +127,7 @@ void server::tcp::ServerTCP::run() {
                     /* Loop back up and accept another incoming          */
                     /* connection                                        */
                     /*****************************************************/
-                } while (new_sd != -1);
+                //} while (new_sd != -1);
             }
 
                 /*********************************************************/
@@ -136,15 +138,19 @@ void server::tcp::ServerTCP::run() {
             else {
                 printf("  Descriptor %d is readable\n", fds[i].fd);
                 close_conn = false;
+                bool fr = true;
                 /*******************************************************/
                 /* Receive all incoming data on this socket            */
                 /* before we loop back and call poll again.            */
                 /*******************************************************/
                 do
                 {
+                    std::this_thread::sleep_for (std::chrono::microseconds(50));
                     args = new tcp_pkt_mngmnt_args();
                     args->pkt = new char[BUFFER_SIZE];
                     args->new_socket_fd = fds[i].fd;
+                    args->first_run = fr;
+                    fr = false;
                     /*****************************************************/
                     /* Receive data on this connection until the         */
                     /* recv fails with EWOULDBLOCK. If any other         */
@@ -174,7 +180,13 @@ void server::tcp::ServerTCP::run() {
                     }
 
                     args->pkt_size = rc;
+
+                    for (int i = 0; i < 40; i++)
+                        printf("%x", (args->pkt)[i]);
+                    printf("\n");
+
                     GO_ASYNC(std::bind<void>(manager_, args));
+                    //manager_(args);
                 } while(true);
 
                 /*******************************************************/

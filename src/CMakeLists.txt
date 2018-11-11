@@ -49,7 +49,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE "${ironhide_SOURCE_DIR}/src/s
 # Optional compilation flags
 option(BOOST_THREAD "For boost thread pool support" ON)
 
-set(BUFFER_SIZE 65536)
+set(BUFFER_SIZE 65507)
 set(DEFAULT_TTL 1024)
 set(ROULETTE_DEFAULT_ADDRESS "localhost")
 set(ROULETTE_DEFAULT_PORT 57684)

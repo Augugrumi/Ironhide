@@ -36,7 +36,7 @@ public:
      * @param dst IP of destination
      * @param port Port of the destination
      */
-    fd_type send_only(unsigned char * message, size_t message_len,
+    std::pair<fd_type, struct addrinfo> send_only(unsigned char * message, size_t message_len,
                       const char* dst, uint16_t port);
 };
 

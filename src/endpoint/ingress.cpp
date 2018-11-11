@@ -4,103 +4,96 @@ endpoint::Ingress::Ingress(uint16_t ext_port, uint16_t int_port) :
         Endpoint(ext_port, int_port) {}
 
 void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
-    LOG(ldebug, "manage tcp packet");
-
     auto args = (server::tcp::tcp_pkt_mngmnt_args *) mngmnt_args;
+    LOG(lfatal, /*"manage tcp packet "*/std::to_string(args->pkt_size));
+
     int new_socket_fd = args->new_socket_fd;
-    ssize_t read_size;
-    unsigned char pkt[BUFFER_SIZE];
     char *sfcid = const_cast<char *>(""), *prev_sfcid = const_cast<char *>("");
     bool db_error = false;
     uint16_t next_port;
     unsigned long ttl;
 
-    /*for (int i = 0; i < args->pkt_size; i++)
-        printf("%c", (args->pkt)[i]);
-    printf("\n");*/
-
-    int s = client::udp::ClientUDP().send_only((unsigned char*)args->pkt,
-                                                    args->pkt_size,
-                                                    "127.0.0.1",
-                                                    9090);
-    close(s);
-    /*std::pair<iphdr, tcphdr> headers;
-    read_size = recv(new_socket_fd, pkt, BUFFER_SIZE, 0);
-    if (read_size < 0) {
-        perror("error receiving data");
-        exit(EXIT_FAILURE);
-    } else if (read_size > 0) {
-        LOG(ltrace, "Read size > 0, data incoming");
-        sfcid = "0";//Endpoint::classifier_.classify_pkt((unsigned char *) pkt,
-                    //                               static_cast<size_t>(read_size));
-
-        headers =
-                utils::PacketUtils::retrieve_ip_tcp_header(
-                        (unsigned char *) pkt);
+    //if (args->first_run) {
+        /*auto p = client::udp::ClientUDP().send_only((unsigned char*)args->pkt,
+                                                                       args->pkt_size,
+                                                                       "172.17.0.2",
+                                                                       9090);*/
+    std::pair<iphdr, tcphdr> headers;
+    headers = utils::PacketUtils::retrieve_ip_tcp_header((unsigned char *) args->pkt);
+    sfcid = "0"; /*Endpoint::classifier_.classify_pkt((unsigned char *) args->pkt,
+                                               static_cast<size_t>(args->pkt_size));*/
 
 
-        if (args->first_run) {
-            LOG(ltrace, "First run, adding entry");
-            args->ce = new ConnectionEntry(
-                        INT_TO_IP(headers.first.saddr),
-                        INT_TO_IP(headers.first.daddr),
-                        htons(headers.second.source),
-                        htons(headers.second.dest), sfcid,
-                        db::protocol_type::TCP);
-            add_entry(*args->ce,
-                      new_socket_fd,
-                      args->client_address,
-                      db::endpoint_type::INGRESS_T,
-                      db::protocol_type::TCP);
+    if (args->first_run) {
+        LOG(ltrace, "First run, adding entry");
+        args->ce = new ConnectionEntry(
+                    INT_TO_IP(headers.first.saddr),
+                    INT_TO_IP(headers.first.daddr),
+                    htons(headers.second.source),
+                    htons(headers.second.dest), sfcid,
+                    db::protocol_type::TCP);
+        add_entry(*args->ce,
+                  new_socket_fd,
+                  args->client_address,
+                  db::endpoint_type::INGRESS_T,
+                  db::protocol_type::TCP);
+    }
+    try {
+
+        std::vector<db::utils::Address> path =
+                roulette_->get_route_list(
+                        static_cast<uint32_t>(std::stoi(sfcid)));
+
+        if (!path.empty()) {
+            // +2 because of ingress & egress
+            ttl = path.size() + 2;
+            next_port = static_cast<uint16_t>(path[0].get_port());
+
+            sfc_header flh =
+                    utils::sfc_header::SFCUtilities::create_header(
+                            static_cast<uint32_t>(std::stoi(sfcid)),
+                            0,
+                            INT_TO_IP_C_STR(headers.first.saddr),
+                            headers.second.source,
+                            INT_TO_IP_C_STR(headers.first.daddr),
+                            headers.second.dest,
+                            static_cast<uint16_t>(ttl), 0);
+            std::vector<unsigned char> formatted_pkt(
+                    static_cast<unsigned long>(args->pkt_size +
+                                               SFC_HDR));
+            unsigned char *p = &formatted_pkt[0];
+            utils::sfc_header::SFCUtilities::prepend_header((unsigned char*)args->pkt,
+                                                            static_cast<size_t>(args->pkt_size),
+                                                            flh, p);
+
+            sfc_header h = utils::sfc_header::SFCUtilities::retrieve_header(p);
+            LOG(ldebug, INT_TO_IP_C_STR(h.destination_address));
+            LOG(ldebug, std::to_string(h.p_id));
+
+            for (int i = 0; i < 64; i++)
+                printf("%x", (p)[i]);
+            printf("\n");
+
+            client::udp::ClientUDP().send_and_wait_response(p,
+                                                            static_cast<size_t>(
+                                                                    args->pkt_size +
+                                                                    SFC_HDR),
+                                                            path[0].get_address().c_str(),
+                                                            next_port);
+
+            /*client::udp::ClientUDP().send_and_wait_response((unsigned char*)args->pkt,
+                                                            args->pkt_size,
+                                                            "172.17.0.2",
+                                                            9090);*/
+            prev_sfcid = sfcid;
+        } else {
+            LOG(ldebug, "no route available, discarding packages");
         }
-        try {
-
-            std::vector<db::utils::Address> path =
-                    roulette_->get_route_list(
-                            static_cast<uint32_t>(std::stoi(sfcid)));
-
-            if (!path.empty()) {
-                // +2 because of ingress & egress
-                //ttl = path.size() + 2;
-                next_port = 9090;//static_cast<uint16_t>(path[0].get_port());
-
-                sfc_header flh =
-                        utils::sfc_header::SFCUtilities::create_header(
-                                static_cast<uint32_t>(std::stoi(sfcid)),
-                                0,
-                                INT_TO_IP_C_STR(headers.first.saddr),
-                                headers.second.source,
-                                INT_TO_IP_C_STR(headers.first.daddr),
-                                headers.second.dest,
-                                static_cast<uint16_t>(ttl), 0);
-                std::vector<unsigned char> formatted_pkt(
-                        static_cast<unsigned long>(read_size +
-                                                   SFC_HDR));
-                unsigned char *p = &formatted_pkt[0];
-                utils::sfc_header::SFCUtilities::prepend_header(pkt,
-                                                                static_cast<size_t>(read_size),
-                                                                flh, p);
-                client::udp::ClientUDP().send_and_wait_response(p,
-                                                                static_cast<size_t>(
-                                                                        read_size +
-                                                                        SFC_HDR),
-                                                                path[0].get_address().c_str(),
-                                                                next_port);
-
-                client::udp::ClientUDP().send_and_wait_response((unsigned char*)args->pkt,
-                                                                args->pkt_size,
-                                                                "192.168.1.6",
-                                                                9090);
-                prev_sfcid = sfcid;
-            } else {
-                LOG(ldebug, "no route available, discarding packages");
-            }
-        } catch (db::exceptions::ios_base::failure &e) {
-            LOG(lwarn, "Encountered an ios_base failure");
-            perror(e.what());
-            db_error = true;
-        }
-    }*/
+    } catch (db::exceptions::ios_base::failure &e) {
+        LOG(lwarn, "Encountered an ios_base failure");
+        perror(e.what());
+        db_error = true;
+    }
 
     /*if (read_size == 0) {
         puts("Client disconnected");

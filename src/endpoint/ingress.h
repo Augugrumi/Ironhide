@@ -51,6 +51,9 @@ private:
      * packets from the chain.
      */
     void manage_pkt_from_chain(void* args);
+
+    int astaire_sock;
+    struct addrinfo astaire_addrinfo;
 public:
     /**
      * Constructor
