@@ -20,8 +20,8 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
                                                                        9090);*/
     std::pair<iphdr, tcphdr> headers;
     headers = utils::PacketUtils::retrieve_ip_tcp_header((unsigned char *) args->pkt);
-    sfcid = "0"; /*Endpoint::classifier_.classify_pkt((unsigned char *) args->pkt,
-                                               static_cast<size_t>(args->pkt_size));*/
+    sfcid = Endpoint::classifier_.classify_pkt((unsigned char *) args->pkt,
+                                               static_cast<size_t>(args->pkt_size));
 
 
     if (args->first_run) {
