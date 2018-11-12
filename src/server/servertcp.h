@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <cstring>
 #include <sys/ioctl.h>
+#include <memory>
 
 #include "utils/asynctaskexecutor.h"
 #include "server.h"
@@ -38,6 +39,8 @@ typedef struct {
     char* pkt;
     size_t pkt_size;
 } tcp_pkt_mngmnt_args;
+
+typedef std::shared_ptr<tcp_pkt_mngmnt_args> args_ptr;
 
 class ServerTCP : public Server {
 public:

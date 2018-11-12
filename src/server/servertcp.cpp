@@ -7,7 +7,7 @@ server::tcp::ServerTCP::ServerTCP(uint16_t port) : Server(port) {}
 void server::tcp::ServerTCP::run() {
     bool run_flag = true;
     struct sockaddr_in addr;
-    tcp_pkt_mngmnt_args *args;
+    args_ptr args;
     socklen_t addr_size;
     int fd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -139,7 +139,7 @@ void server::tcp::ServerTCP::run() {
                 printf("  Descriptor %d is readable\n", fds[i].fd);
                 close_conn = false;
                 bool fr = true;
-                tcp_pkt_mngmnt_args* tmp;
+                args_ptr tmp;
 
                 /*******************************************************/
                 /* Receive all incoming data on this socket            */
@@ -148,14 +148,9 @@ void server::tcp::ServerTCP::run() {
                 do
                 {
                     std::this_thread::sleep_for (std::chrono::microseconds(50));
-                    /*if (!fr) {
-                        tmp = args;
-                        args = new tcp_pkt_mngmnt_args();
-                        args->ce = tmp->ce;
-                        delete tmp;
-                    }*/
+
                     tmp = args;
-                    args = new tcp_pkt_mngmnt_args();
+                    args = std::make_shared<tcp_pkt_mngmnt_args>();//new tcp_pkt_mngmnt_args();
 
                     args->pkt = new char[BUFFER_SIZE];
                     args->new_socket_fd = fds[i].fd;
@@ -188,21 +183,17 @@ void server::tcp::ServerTCP::run() {
                         close_conn = true;
                         args->pkt_size = 0;
                         args->ce = tmp->ce;
-                        ASYNC_TASK(std::bind<void>(manager_, args));
+                        ASYNC_TASK(std::bind<void>(manager_, &args));
                         break;
                     }
 
                     args->pkt_size = rc;
 
-                    if (tmp) {
-                        printf("args->ce = tmp->ce");
-                        args->ce = tmp->ce;
-                    }
                     for (int i = 0; i < 40; i++)
                         printf("%x", (args->pkt)[i]);
                     printf("\n");
 
-                    ASYNC_TASK(std::bind<void>(manager_, args));
+                    ASYNC_TASK(std::bind<void>(manager_, &args));
                     //manager_(args);
                 } while(true);
 

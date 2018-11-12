@@ -4,7 +4,7 @@ endpoint::Ingress::Ingress(uint16_t ext_port, uint16_t int_port) :
         Endpoint(ext_port, int_port) {}
 
 void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
-    auto args = (server::tcp::tcp_pkt_mngmnt_args *) mngmnt_args;
+    auto args = *((server::tcp::args_ptr *) mngmnt_args);
     LOG(lfatal, /*"manage tcp packet "*/std::to_string(args->pkt_size));
 
     int new_socket_fd = args->new_socket_fd;
@@ -104,8 +104,6 @@ void endpoint::Ingress::manage_entering_tcp_packets(void *mngmnt_args) {
             perror(e.what());
             db_error = true;
         }
-
-        //delete args->pkt;
     }
 
 }
