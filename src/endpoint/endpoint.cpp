@@ -9,6 +9,7 @@ db::DBQuery *endpoint::Endpoint::roulette_ = new db::DBQuery(ROULETTE_DEFAULT_AD
 endpoint::Endpoint::Endpoint(uint16_t ext_port, uint16_t int_port) :
         ext_port_(ext_port), int_port_(int_port) {
     retrieve_ip();
+    //my_ip_ = "192.168.1.6";
 }
 
 uint16_t endpoint::Endpoint::get_internal_port() const {
@@ -90,7 +91,7 @@ endpoint::Endpoint::retrieve_connection_2(endpoint::ConnectionEntry ce) {
 }
 
 void endpoint::Endpoint::set_my_ip(const std::string &my_ip) {
-    LOG(ldebug, "MyIpAddress set to: " + get_my_ip());
+    LOG(ldebug, "MyIpAddress set to: " + my_ip_);
     my_ip_ = my_ip;
 }
 

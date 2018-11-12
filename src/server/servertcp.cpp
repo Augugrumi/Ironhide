@@ -139,6 +139,8 @@ void server::tcp::ServerTCP::run() {
                 printf("  Descriptor %d is readable\n", fds[i].fd);
                 close_conn = false;
                 bool fr = true;
+                tcp_pkt_mngmnt_args* tmp;
+
                 /*******************************************************/
                 /* Receive all incoming data on this socket            */
                 /* before we loop back and call poll again.            */
@@ -146,7 +148,15 @@ void server::tcp::ServerTCP::run() {
                 do
                 {
                     std::this_thread::sleep_for (std::chrono::microseconds(50));
+                    /*if (!fr) {
+                        tmp = args;
+                        args = new tcp_pkt_mngmnt_args();
+                        args->ce = tmp->ce;
+                        delete tmp;
+                    }*/
+                    tmp = args;
                     args = new tcp_pkt_mngmnt_args();
+
                     args->pkt = new char[BUFFER_SIZE];
                     args->new_socket_fd = fds[i].fd;
                     args->first_run = fr;
@@ -176,16 +186,23 @@ void server::tcp::ServerTCP::run() {
                     {
                         printf("  Connection closed\n");
                         close_conn = true;
+                        args->pkt_size = 0;
+                        args->ce = tmp->ce;
+                        ASYNC_TASK(std::bind<void>(manager_, args));
                         break;
                     }
 
                     args->pkt_size = rc;
 
+                    if (tmp) {
+                        printf("args->ce = tmp->ce");
+                        args->ce = tmp->ce;
+                    }
                     for (int i = 0; i < 40; i++)
                         printf("%x", (args->pkt)[i]);
                     printf("\n");
 
-                    GO_ASYNC(std::bind<void>(manager_, args));
+                    ASYNC_TASK(std::bind<void>(manager_, args));
                     //manager_(args);
                 } while(true);
 

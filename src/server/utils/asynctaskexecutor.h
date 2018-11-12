@@ -24,6 +24,9 @@ private:
 };
 
 // TODO find something better
+#define ASYNC_TASK(task) \
+    utils::AsyncTaskExecutor::instance()->submit_task(task);
+
 #define GO_ASYNC(task) \
     std::thread(task).detach();
 } // namespace utils
