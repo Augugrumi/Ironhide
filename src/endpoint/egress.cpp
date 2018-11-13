@@ -60,6 +60,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char *pkt,
 
     if (bind(raw_socket, (struct sockaddr *) &sockstr, socklen) == -1) {
         LOG(lfatal, "raw socket bind");
+        perror("bind");
         LOG(ltrace, "Close ln 63 egress.cpp");
         close(raw_socket);
         exit(EXIT_FAILURE);
@@ -89,7 +90,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char *pkt,
     uint16_t next_port;
     unsigned long ttl;
 
-    do {
+    /*do {
         received_len = recvfrom(raw_socket, buffer, BUFFER_SIZE, 0,
                                 (struct sockaddr *) &sockstr,
                                 &(socklen));
@@ -139,8 +140,10 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char *pkt,
             if (received_len < BUFFER_SIZE)
                 break;
         }
-    } while (received_len > 0);
+    } while (received_len > 0);*/
 
+    close(sock);
+    close(raw_socket);
     free(pkt);
     free(buffer);
 

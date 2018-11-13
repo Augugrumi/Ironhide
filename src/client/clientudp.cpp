@@ -53,7 +53,7 @@ void client::udp::ClientUDP::send_and_wait_response(unsigned char *message,
                     rp->ai_addrlen);
             if (res > 0) {
                 send_flag = false;
-                LOG(lfatal, "Sent " + std::to_string(res));
+                //LOG(lfatal, "Sent " + std::to_string(res));
             } else {
                 LOG(lfatal, "Error " + std::to_string(res));
                 perror("send error");

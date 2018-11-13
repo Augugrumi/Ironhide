@@ -8,8 +8,8 @@ db::DBQuery *endpoint::Endpoint::roulette_ = new db::DBQuery(ROULETTE_DEFAULT_AD
 #include <cstdio>
 endpoint::Endpoint::Endpoint(uint16_t ext_port, uint16_t int_port) :
         ext_port_(ext_port), int_port_(int_port) {
-    retrieve_ip();
-    //my_ip_ = "192.168.1.6";
+    //retrieve_ip();
+    my_ip_ = "192.168.1.6";
 }
 
 uint16_t endpoint::Endpoint::get_internal_port() const {
@@ -52,6 +52,8 @@ void endpoint::Endpoint::update_entry(endpoint::ConnectionEntry ce,
                                       endpoint::socket_fd fd,
                                       sockaddr_in sockin,
                                       db::endpoint_type endpoint) {
+    if (connection_map.find(ce) == connection_map.end()) {
+
     roulette_->update_endpoint(
             db::DBQuery::Query::Builder()
                     .set_endpoint_type(db::endpoint_type::INGRESS_T)
@@ -67,6 +69,7 @@ void endpoint::Endpoint::update_entry(endpoint::ConnectionEntry ce,
                     std::to_string(fd), endpoint)
     );
 
+    }
     connection_map.insert(conn_map_entry_t(ce, sock_conn_t(fd, sockin)));
 }
 

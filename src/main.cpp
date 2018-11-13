@@ -23,9 +23,9 @@ void usage() {
 }
 
 int main(int argc, char *argv[]) {
-#if DEBUG_BUILD
-    utils::Log::instance()->set_log_level(utils::Log::trace);
-#endif
+//#if DEBUG_BUILD
+    utils::Log::instance()->set_log_level(utils::Log::warning);
+//#endif
     uint16_t ext_port = 8787;
     uint16_t int_port = 8778;
     bool is_egress = false;

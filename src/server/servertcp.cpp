@@ -192,6 +192,7 @@ void server::tcp::ServerTCP::run() {
                     for (int i = 0; i < 40; i++)
                         printf("%x", (args->pkt)[i]);
                     printf("\n");
+                    printf("%d\n", rc);
 
                     ASYNC_TASK(std::bind<void>(manager_, &args));
                     //manager_(args);
