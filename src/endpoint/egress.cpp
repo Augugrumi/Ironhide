@@ -62,7 +62,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char *pkt,
     server.sin_port = htons(header.destination_port);
     server.sin_addr.s_addr = header.destination_address;
 
-    ssize_t to_send = pkt_len - pkt_calc;
+    /*ssize_t to_send = pkt_len - pkt_calc;
     int i = 0;
     int min = -1;
     while (to_send > 0) {
@@ -88,15 +88,26 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char *pkt,
         }
         to_send -= 1400;
         i += 1400;
-    }
+    }*/
 
-    /*if (sendto(sock, datagram, iph->tot_len, 0,
+    unsigned char datagram[BUFFER_SIZE];
+    unsigned char *total_pkt = datagram;
+    struct iphdr *iph;
+    struct udphdr *udph;
+    utils::PacketUtils::forge_ip_udp_pkt(pkt + pkt_calc, pkt_len - pkt_calc,
+                                         get_my_ip().c_str(),
+                                         ce.get_ip_dst().c_str(),
+                                         get_external_port(), ce.get_port_dst(),
+                                         iph, udph,
+                                         total_pkt);
+
+    if (sendto(sock, datagram, iph->tot_len, 0,
                (struct sockaddr *) &server, sizeof(server)) < 0) {
         perror("sendto failed");
         exit(EXIT_FAILURE);
     } else {
         LOG(ldebug, "Packet Send ");
-    }*/
+    }
 
     update_entry(ce, sock, server, db::endpoint_type::EGRESS_T);
 
@@ -107,7 +118,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char *pkt,
     uint16_t next_port;
     unsigned long ttl;
 
-    /*do {
+    do {
         received_len = recvfrom(raw_socket, buffer, BUFFER_SIZE, 0,
                                 (struct sockaddr *) &sockstr,
                                 &(socklen));
@@ -157,7 +168,7 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char *pkt,
             if (received_len < BUFFER_SIZE)
                 break;
         }
-    } while (received_len > 0);*/
+    } while (received_len > 0);
 
     close(sock);
     close(raw_socket);
