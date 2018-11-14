@@ -8,8 +8,8 @@ db::DBQuery *endpoint::Endpoint::roulette_ = new db::DBQuery(ROULETTE_DEFAULT_AD
 #include <cstdio>
 endpoint::Endpoint::Endpoint(uint16_t ext_port, uint16_t int_port) :
         ext_port_(ext_port), int_port_(int_port) {
-    //retrieve_ip();
-    my_ip_ = "192.168.1.6";
+    retrieve_ip();
+    //my_ip_ = "192.168.1.6";
 }
 
 uint16_t endpoint::Endpoint::get_internal_port() const {

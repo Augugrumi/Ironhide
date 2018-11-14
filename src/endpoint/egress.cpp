@@ -24,17 +24,6 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char *pkt,
         exit(EXIT_FAILURE);
     }
 
-    unsigned char datagram[BUFFER_SIZE];
-    unsigned char *total_pkt = datagram;
-    struct iphdr *iph;
-    struct udphdr *udph;
-    utils::PacketUtils::forge_ip_udp_pkt(pkt + pkt_calc, pkt_len - pkt_calc,
-                                         get_my_ip().c_str(),
-                                         ce.get_ip_dst().c_str(),
-                                         get_external_port(), ce.get_port_dst(),
-                                         iph, udph,
-                                         total_pkt);
-
 
     int raw_socket;
     struct sockaddr_in sockstr{};
@@ -54,9 +43,9 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char *pkt,
 
     sockstr.sin_family = AF_INET;
     sockstr.sin_port = htons(get_external_port());//ce.get_port_dst());
-    sockstr.sin_addr.s_addr = inet_addr(
+    sockstr.sin_addr.s_addr = INADDR_ANY;/*inet_addr(
             get_my_ip().c_str());//inet_addr(ce.get_ip_dst().c_str());
-    socklen = (socklen_t) sizeof(sockstr);
+    */socklen = (socklen_t) sizeof(sockstr);
 
     if (bind(raw_socket, (struct sockaddr *) &sockstr, socklen) == -1) {
         LOG(lfatal, "raw socket bind");
@@ -73,13 +62,41 @@ void endpoint::Egress::manage_exiting_udp_packets(unsigned char *pkt,
     server.sin_port = htons(header.destination_port);
     server.sin_addr.s_addr = header.destination_address;
 
-    if (sendto(sock, datagram, iph->tot_len, 0,
+    ssize_t to_send = pkt_len - pkt_calc;
+    int i = 0;
+    int min = -1;
+    while (to_send > 0) {
+        unsigned char datagram[1500];
+        unsigned char *total_pkt = datagram;
+        struct iphdr *iph;
+        struct udphdr *udph;
+        min = (to_send > 1400) ? 1400 : to_send;
+        utils::PacketUtils::forge_ip_udp_pkt(pkt + pkt_calc + i,
+                                             min,
+                                             get_my_ip().c_str(),
+                                             ce.get_ip_dst().c_str(),
+                                             get_external_port(), ce.get_port_dst(),
+                                             iph, udph,
+                                             total_pkt);
+
+        if (sendto(sock, datagram, iph->tot_len, 0,
+                   (struct sockaddr *) &server, sizeof(server)) < 0) {
+            perror("sendto failed");
+            exit(EXIT_FAILURE);
+        } else {
+            LOG(ldebug, "Packet Send ");
+        }
+        to_send -= 1400;
+        i += 1400;
+    }
+
+    /*if (sendto(sock, datagram, iph->tot_len, 0,
                (struct sockaddr *) &server, sizeof(server)) < 0) {
         perror("sendto failed");
         exit(EXIT_FAILURE);
     } else {
         LOG(ldebug, "Packet Send ");
-    }
+    }*/
 
     update_entry(ce, sock, server, db::endpoint_type::EGRESS_T);
 
